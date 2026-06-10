@@ -1,0 +1,2109 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECU Intelligence Pro v5.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Cairo:wght@400;600;700;900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07090f;
+  --bg2: #0d1117;
+  --bg3: #111827;
+  --card: #0f1623;
+  --card2: #141d2e;
+  --border: #1e2d45;
+  --border2: #253550;
+  --accent: #f97316;
+  --accent2: #3b82f6;
+  --accent3: #8b5cf6;
+  --green: #22c55e;
+  --red: #ef4444;
+  --yellow: #f59e0b;
+  --cyan: #38bdf8;
+  --text: #e2eaf8;
+  --text2: #8aa3c4;
+  --text3: #4a6080;
+  --glow: rgba(249,115,22,0.18);
+  --glow2: rgba(59,130,246,0.12);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Cairo', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(249,115,22,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(249,115,22,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none; z-index: 0;
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0; opacity: 0.4;
+}
+.layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+/* SIDEBAR */
+.sidebar {
+  width: 280px; flex-shrink: 0;
+  background: linear-gradient(180deg, var(--bg2) 0%, var(--bg) 100%);
+  border-left: 1px solid var(--border);
+  position: fixed; top: 0; right: 0; bottom: 0;
+  overflow-y: auto; z-index: 100;
+  padding-bottom: 40px;
+}
+[dir="ltr"] .sidebar { right: auto; left: 0; border-left: none; border-right: 1px solid var(--border); }
+.sidebar-header {
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+  position: sticky; top: 0; z-index: 10;
+}
+.sidebar-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.sidebar-logo svg { width: 22px; height: 22px; flex-shrink: 0; }
+.sidebar-logo h2 { font-size: 13px; font-weight: 900; color: var(--accent); letter-spacing: -0.02em; }
+.sidebar-ver { font-size: 10px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; padding: 2px 8px; background: var(--card); border-radius: 4px; display: inline-block; }
+.nav-section { padding: 10px 14px 4px; font-size: 9px; font-weight: 700; color: var(--text3); letter-spacing: 2px; text-transform: uppercase; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 20px; color: var(--text2); font-size: 12px; font-weight: 600;
+  text-decoration: none; border-right: 2px solid transparent;
+  transition: all 0.2s; cursor: pointer;
+}
+[dir="ltr"] .nav-item { border-right: none; border-left: 2px solid transparent; }
+.nav-item:hover { color: var(--text); background: rgba(255,255,255,0.03); border-right-color: var(--accent); }
+[dir="ltr"] .nav-item:hover { border-right-color: transparent; border-left-color: var(--accent); }
+.nav-item.active { color: var(--accent); background: rgba(249,115,22,0.06); border-right-color: var(--accent); }
+[dir="ltr"] .nav-item.active { border-right-color: transparent; border-left-color: var(--accent); }
+.nav-item .nav-ic { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.7; }
+.nav-item:hover .nav-ic, .nav-item.active .nav-ic { opacity: 1; }
+
+/* LANG SWITCHER */
+.lang-switcher {
+  display: flex; gap: 4px; flex-wrap: wrap;
+  padding: 12px 14px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.lang-btn {
+  padding: 4px 9px; border-radius: 5px; font-size: 10px; font-weight: 700;
+  border: 1px solid var(--border); background: var(--card); color: var(--text3);
+  cursor: pointer; transition: all 0.15s; font-family: 'Cairo', sans-serif;
+  letter-spacing: 0.3px;
+}
+.lang-btn:hover { border-color: var(--border2); color: var(--text2); }
+.lang-btn.active { background: rgba(249,115,22,0.12); border-color: rgba(249,115,22,0.4); color: var(--accent); }
+
+/* MAIN */
+.main { margin-right: 280px; flex: 1; min-width: 0; }
+[dir="ltr"] .main { margin-right: 0; margin-left: 280px; }
+
+/* HERO */
+.hero { position: relative; padding: 80px 60px 60px; overflow: hidden; border-bottom: 1px solid var(--border); }
+.hero-glow { position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 70%); top: -200px; left: -100px; pointer-events: none; }
+.hero-glow2 { position: absolute; width: 400px; height: 400px; background: radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%); bottom: -100px; right: 100px; pointer-events: none; }
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px;
+  background: rgba(249,115,22,0.1); border: 1px solid rgba(249,115,22,0.25);
+  border-radius: 20px; font-size: 11px; font-weight: 700; color: var(--accent);
+  margin-bottom: 24px; font-family: 'IBM Plex Mono', monospace;
+  animation: fadeInDown 0.6s ease both;
+}
+.hero-badge-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+.hero h1 { font-size: 52px; font-weight: 900; line-height: 1.1; letter-spacing: -0.04em; margin-bottom: 16px; animation: fadeInDown 0.7s ease both; }
+.hero h1 span { color: var(--accent); }
+.hero p { font-size: 16px; color: var(--text2); max-width: 600px; line-height: 1.7; margin-bottom: 36px; animation: fadeInDown 0.8s ease both; }
+.hero-stats { display: flex; gap: 32px; animation: fadeInDown 0.9s ease both; }
+.hero-stat .val { font-size: 28px; font-weight: 900; color: var(--accent); font-family: 'IBM Plex Mono', monospace; display: block; }
+.hero-stat .lbl { font-size: 11px; color: var(--text3); font-weight: 600; }
+.pipeline-banner {
+  margin-top: 40px; display: flex; align-items: center;
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 20px; overflow-x: auto; animation: fadeInDown 1s ease both; gap: 0;
+}
+.pipe-step { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.pipe-ic {
+  width: 34px; height: 34px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(249,115,22,0.12);
+}
+.pipe-ic svg { width: 16px; height: 16px; }
+.pipe-step:nth-child(n+3) .pipe-ic { background: rgba(59,130,246,0.12); }
+.pipe-step:nth-child(n+5) .pipe-ic { background: rgba(139,92,246,0.12); }
+.pipe-step:nth-child(7) .pipe-ic { background: rgba(34,197,94,0.12); }
+.pipe-num { font-size: 9px; font-weight: 900; color: var(--text3); font-family: 'IBM Plex Mono', monospace; line-height: 1; }
+.pipe-label { font-size: 11px; font-weight: 700; color: var(--text2); }
+.pipe-info { display: flex; flex-direction: column; gap: 1px; }
+.pipe-arrow { color: var(--text3); margin: 0 10px; font-size: 16px; flex-shrink: 0; }
+
+/* SECTIONS */
+.section { padding: 60px 60px; border-bottom: 1px solid var(--border); }
+.section:last-child { border-bottom: none; }
+.section-tag { font-size: 10px; font-weight: 700; color: var(--accent); letter-spacing: 3px; text-transform: uppercase; font-family: 'IBM Plex Mono', monospace; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.section-tag::before { content: '//'; color: var(--text3); }
+.section-title { font-size: 32px; font-weight: 900; letter-spacing: -0.03em; margin-bottom: 8px; }
+.section-sub { font-size: 14px; color: var(--text2); margin-bottom: 36px; line-height: 1.6; }
+
+/* CARDS */
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 24px; position: relative; overflow: hidden; transition: border-color 0.2s, transform 0.2s;
+}
+.card:hover { border-color: var(--border2); transform: translateY(-2px); }
+.card::before {
+  content: ''; position: absolute; top: 0; right: 0; width: 100%; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0; transition: opacity 0.3s;
+}
+.card:hover::before { opacity: 1; }
+.card-icon {
+  width: 44px; height: 44px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 14px; background: rgba(249,115,22,0.1);
+}
+.card-icon svg { width: 22px; height: 22px; }
+.card-icon.blue { background: rgba(59,130,246,0.1); }
+.card-icon.purple { background: rgba(139,92,246,0.1); }
+.card-icon.green { background: rgba(34,197,94,0.1); }
+.card-icon.red { background: rgba(239,68,68,0.1); }
+.card-icon.cyan { background: rgba(56,189,248,0.1); }
+.card-icon.yellow { background: rgba(245,158,11,0.1); }
+.card h3 { font-size: 16px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em; }
+.card p { font-size: 13px; color: var(--text2); line-height: 1.65; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+
+/* STAGE CARDS */
+.stage-cards { display: flex; gap: 16px; }
+.stage-card { flex: 1; border-radius: 12px; padding: 24px; border: 1px solid; position: relative; overflow: hidden; }
+.stage-card.s1 { background: rgba(34,197,94,0.04); border-color: rgba(34,197,94,0.2); }
+.stage-card.s2 { background: rgba(139,92,246,0.04); border-color: rgba(139,92,246,0.2); }
+.stage-card.s3 { background: rgba(239,68,68,0.04); border-color: rgba(239,68,68,0.2); }
+.stage-card .stage-label { font-size: 11px; font-weight: 900; letter-spacing: 2px; margin-bottom: 10px; font-family: 'IBM Plex Mono', monospace; }
+.stage-card.s1 .stage-label { color: var(--green); }
+.stage-card.s2 .stage-label { color: var(--accent3); }
+.stage-card.s3 .stage-label { color: var(--red); }
+.stage-card h3 { font-size: 18px; font-weight: 900; margin-bottom: 6px; }
+.stage-card .pct { font-size: 42px; font-weight: 900; font-family: 'IBM Plex Mono', monospace; opacity: 0.15; position: absolute; top: 16px; left: 20px; line-height: 1; }
+.stage-card.s1 .pct { color: var(--green); }
+.stage-card.s2 .pct { color: var(--accent3); }
+.stage-card.s3 .pct { color: var(--red); }
+.stage-features { margin-top: 14px; }
+.stage-features li { list-style: none; font-size: 12px; color: var(--text2); padding: 4px 0; display: flex; align-items: center; gap: 8px; }
+.stage-features li::before { content: '▸'; color: var(--text3); }
+.stage-warning { margin-top: 12px; font-size: 10px; font-weight: 700; padding: 6px 10px; border-radius: 5px; font-family: 'IBM Plex Mono', monospace; }
+.s1 .stage-warning { background: rgba(34,197,94,0.1); color: var(--green); }
+.s2 .stage-warning { background: rgba(139,92,246,0.1); color: var(--accent3); }
+.s3 .stage-warning { background: rgba(239,68,68,0.1); color: var(--red); }
+
+/* FEATURE GRID */
+.feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.feature-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; text-align: center; transition: all 0.2s; }
+.feature-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+.feature-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; }
+.feature-icon svg { width: 24px; height: 24px; }
+.feature-name { font-size: 15px; font-weight: 900; margin-bottom: 4px; }
+.feature-desc { font-size: 11px; color: var(--text2); }
+.feature-card.dpf { border-top: 2px solid var(--accent); }
+.feature-card.dpf .feature-icon { background: rgba(249,115,22,0.12); }
+.feature-card.egr { border-top: 2px solid var(--accent2); }
+.feature-card.egr .feature-icon { background: rgba(59,130,246,0.12); }
+.feature-card.scr { border-top: 2px solid var(--accent3); }
+.feature-card.scr .feature-icon { background: rgba(139,92,246,0.12); }
+.feature-card.immo { border-top: 2px solid var(--green); }
+.feature-card.immo .feature-icon { background: rgba(34,197,94,0.12); }
+.feature-card.dtc { border-top: 2px solid var(--yellow); }
+.feature-card.dtc .feature-icon { background: rgba(245,158,11,0.12); }
+.feature-card.boost { border-top: 2px solid var(--cyan); }
+.feature-card.boost .feature-icon { background: rgba(56,189,248,0.12); }
+
+/* CODE BLOCK */
+.code-block { background: #060a10; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin: 16px 0; }
+.code-header { background: var(--card2); border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center; gap: 8px; }
+.code-dot { width: 10px; height: 10px; border-radius: 50%; }
+.code-dot.red { background: #ef4444; } .code-dot.yellow { background: #f59e0b; } .code-dot.green { background: #22c55e; }
+.code-title { font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; margin-right: auto; }
+[dir="ltr"] .code-title { margin-right: 0; margin-left: auto; }
+pre { padding: 20px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text2); overflow-x: auto; line-height: 1.7; }
+.hl-key { color: var(--accent); font-weight: 600; }
+.hl-str { color: var(--green); }
+.hl-val { color: var(--cyan); }
+.hl-comment { color: var(--text3); }
+.hl-ok { color: var(--green); }
+.hl-warn { color: var(--yellow); }
+.hl-err { color: var(--red); }
+.hl-acc { color: var(--accent); font-weight: 700; }
+
+/* TABLE */
+.table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+th { background: var(--card2); padding: 12px 16px; font-size: 11px; font-weight: 700; color: var(--text2); text-align: right; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+[dir="ltr"] th { text-align: left; }
+td { padding: 12px 16px; font-size: 13px; color: var(--text); border-bottom: 1px solid rgba(30,45,69,0.5); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.015); }
+td code { background: rgba(249,115,22,0.1); color: var(--accent); padding: 2px 7px; border-radius: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+
+/* WORKFLOW */
+.workflow { display: flex; gap: 0; margin: 24px 0; }
+.wf-step { flex: 1; background: var(--card); border: 1px solid var(--border); border-left: none; padding: 20px 18px; position: relative; }
+[dir="ltr"] .wf-step { border-left: none; border-right: none; }
+[dir="ltr"] .wf-step:first-child { border-left: 1px solid var(--border); border-radius: 10px 0 0 10px; }
+[dir="ltr"] .wf-step:last-child { border-right: 1px solid var(--border); border-radius: 0 10px 10px 0; }
+.wf-step:first-child { border-left: 1px solid var(--border); border-radius: 10px 0 0 10px; }
+.wf-step:last-child { border-radius: 0 10px 10px 0; }
+.wf-num { font-size: 9px; font-weight: 900; color: var(--text3); font-family: 'IBM Plex Mono', monospace; margin-bottom: 6px; }
+.wf-step h4 { font-size: 13px; font-weight: 800; margin-bottom: 4px; }
+.wf-step p { font-size: 11px; color: var(--text2); line-height: 1.5; }
+.wf-arrow { width: 24px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--text3); font-size: 16px; background: var(--card); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.wf-icon { width: 32px; height: 32px; border-radius: 8px; background: rgba(249,115,22,0.1); display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+.wf-icon svg { width: 16px; height: 16px; }
+
+/* TIP BOXES */
+.tip-box { border-radius: 10px; padding: 16px 20px; display: flex; gap: 14px; align-items: flex-start; margin: 12px 0; }
+.tip-box.info { background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.2); }
+.tip-box.warn { background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.2); }
+.tip-box.danger { background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2); }
+.tip-box.success { background: rgba(34,197,94,0.06); border: 1px solid rgba(34,197,94,0.2); }
+.tip-icon { width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px; }
+.tip-icon svg { width: 22px; height: 22px; }
+.tip-text { font-size: 13px; color: var(--text2); line-height: 1.65; }
+.tip-text strong { color: var(--text); font-weight: 700; }
+
+/* CONTACT */
+.contact-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 32px; display: flex; gap: 40px; align-items: center; }
+.contact-phone { font-size: 36px; font-weight: 900; color: var(--text); font-family: 'IBM Plex Mono', monospace; letter-spacing: -0.02em; direction: ltr; }
+.contact-name { font-size: 20px; font-weight: 900; margin-bottom: 4px; }
+.contact-role { font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+.contact-avail { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--green); background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); padding: 4px 12px; border-radius: 20px; }
+.btn-row { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; text-decoration: none; font-family: 'Cairo', sans-serif; }
+.btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+.btn-wa { background: #25D366; color: #fff; }
+.btn-wa:hover { background: #20bd5a; transform: translateY(-1px); }
+.btn-copy { background: var(--card2); color: var(--text); border: 1px solid var(--border); }
+.btn-copy:hover { border-color: var(--accent); color: var(--accent); }
+.btn-sec { background: var(--card2); color: var(--text); border: 1px solid var(--border); }
+.btn-sec:hover { border-color: var(--border2); }
+
+/* FOLDER TREE */
+.folder-tree { background: #060a10; border: 1px solid var(--border); border-radius: 10px; padding: 24px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; line-height: 2; }
+.ft-dir { color: var(--accent2); font-weight: 700; }
+.ft-db { color: var(--yellow); }
+.ft-bin { color: var(--green); }
+.ft-html { color: var(--cyan); }
+.ft-json { color: var(--accent); }
+.ft-comment { color: var(--text3); margin-right: 20px; }
+[dir="ltr"] .ft-comment { margin-right: 0; margin-left: 20px; }
+
+/* POPS CARDS */
+.pops-value { margin-top: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text3); background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px; border: 1px solid var(--border); line-height: 1.9; }
+
+/* ANIMATIONS */
+@keyframes fadeInDown { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.anim-pulse { animation: pulse 2s infinite; }
+
+/* RESPONSIVE */
+@media (max-width: 1100px) {
+  .sidebar { display: none; }
+  .main { margin-right: 0 !important; margin-left: 0 !important; }
+  .hero { padding: 50px 30px; }
+  .section { padding: 40px 30px; }
+  .grid-3, .tabs-grid { grid-template-columns: 1fr 1fr; }
+  .grid-4 { grid-template-columns: 1fr 1fr; }
+  .stage-cards { flex-direction: column; }
+  .feature-grid { grid-template-columns: 1fr 1fr; }
+  .contact-card { flex-direction: column; gap: 20px; }
+  .workflow { flex-direction: column; }
+  .wf-step { border-left: 1px solid var(--border) !important; border-top: none; border-radius: 0 !important; }
+  .wf-step:first-child { border-top: 1px solid var(--border) !important; border-radius: 10px 10px 0 0 !important; }
+  .wf-step:last-child { border-radius: 0 0 10px 10px !important; }
+  .wf-arrow { display: none; }
+}
+@media (max-width: 600px) {
+  .hero h1 { font-size: 32px; }
+  .grid-2, .grid-3, .grid-4, .feature-grid { grid-template-columns: 1fr; }
+  .hero-stats { gap: 16px; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+        <path d="M12 2v2m0 16v2M2 12h2m16 0h2"/>
+      </svg>
+      <h2>ECU Intelligence Pro</h2>
+    </div>
+    <span class="sidebar-ver">v5.0.0 — <span data-k="userGuide">دليل المستخدم</span></span>
+  </div>
+
+  <!-- LANGUAGE SWITCHER -->
+  <div class="lang-switcher">
+    <button class="lang-btn active" onclick="setLang('ar')">العربية</button>
+    <button class="lang-btn" onclick="setLang('en')">English</button>
+    <button class="lang-btn" onclick="setLang('fr')">Français</button>
+    <button class="lang-btn" onclick="setLang('de')">Deutsch</button>
+    <button class="lang-btn" onclick="setLang('tr')">Türkçe</button>
+  </div>
+
+  <div class="nav-section" data-k="navStart">البداية</div>
+  <a class="nav-item" href="#hero">
+    <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+    <span data-k="navOverview">نظرة عامة</span>
+  </a>
+  <a class="nav-item" href="#splash">
+    <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    <span data-k="navSplash">شاشة البداية</span>
+  </a>
+  <a class="nav-item" href="#license">
+    <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    <span data-k="navLicense">الترخيص</span>
+  </a>
+  <a class="nav-item" href="#header">
+    <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+    <span data-k="navHeader">الشريط الرئيسي</span>
+  </a>
+  <a class="nav-item" href="#pipeline">
+    <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    <span data-k="navPipeline">خط الأنابيب</span>
+  </a>
+
+  <div class="nav-section" data-k="navTabs">التبويبات</div>
+  <a class="nav-item" href="#analysis">
+    <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <span data-k="navAnalysis">التحليل</span>
+  </a>
+  <a class="nav-item" href="#fuelmaps">
+    <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round"><path d="M3 3h7l2 6-4 3 5 9h6"/><path d="M14 3h7"/></svg>
+    <span data-k="navFuel">خرائط الوقود</span>
+  </a>
+  <a class="nav-item" href="#boostmap">
+    <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><path d="M18 2l4 4-4 4"/></svg>
+    <span data-k="navBoost">خريطة الضغط</span>
+  </a>
+  <a class="nav-item" href="#tune">
+    <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+    <span data-k="navTune">DPF / EGR / Tune</span>
+  </a>
+  <a class="nav-item" href="#patchmgr">
+    <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <span data-k="navPatch">مدير التصحيحات</span>
+  </a>
+  <a class="nav-item" href="#obd">
+    <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1" fill="#38bdf8"/></svg>
+    <span data-k="navOBD">OBD / CAN</span>
+  </a>
+  <a class="nav-item" href="#pops">
+    <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+    <span data-k="navPops">Pops &amp; Bangs</span>
+  </a>
+  <a class="nav-item" href="#diff">
+    <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <span data-k="navDiff">مقارنة BIN</span>
+  </a>
+  <a class="nav-item" href="#hexview">
+    <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+    <span data-k="navHex">عرض Hex</span>
+  </a>
+  <a class="nav-item" href="#joblog">
+    <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    <span data-k="navJob">سجل الأعمال</span>
+  </a>
+  <a class="nav-item" href="#crm">
+    <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <span data-k="navCRM">العملاء</span>
+  </a>
+  <a class="nav-item" href="#scripts">
+    <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
+    <span data-k="navScripts">محرك السكريبتات</span>
+  </a>
+  <a class="nav-item" href="#features-tab">
+    <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+    <span data-k="navFeatures">كشف الميزات</span>
+  </a>
+  <a class="nav-item" href="#difflearn">
+    <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+    <span data-k="navLearn">تعلم الفروق</span>
+  </a>
+  <a class="nav-item" href="#hexconv">
+    <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+    <span data-k="navHexConv">تحويل HEX</span>
+  </a>
+
+  <div class="nav-section" data-k="navOther">أخرى</div>
+  <a class="nav-item" href="#workflow">
+    <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    <span data-k="navWorkflow">سير العمل</span>
+  </a>
+  <a class="nav-item" href="#folders">
+    <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+    <span data-k="navFolders">المجلدات</span>
+  </a>
+  <a class="nav-item" href="#contact">
+    <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.65 3.12 2 2 0 0 1 3.62 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6 6l1.06-.97a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    <span data-k="navContact">الدعم الفني</span>
+  </a>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+<!-- HERO -->
+<div class="hero" id="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+  <div class="hero-badge">
+    <div class="hero-badge-dot"></div>
+    ECU Intelligence Pro v5.0 — <span data-k="heroGuide">دليل المستخدم المجزأ</span>
+  </div>
+  <h1 data-k="heroTitle1">كل شيء تحتاجه<br><span data-k="heroTitle2">لضبط وحدات التحكم</span></h1>
+  <p data-k="heroDesc">دليل مفصّل وسهل الفهم لجميع ميزات البرنامج، من تحليل ملفات BIN وحتى توليد السكريبتات التلقائية عبر محرك تعلم الفروق.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><span class="val">32+</span><span class="lbl" data-k="statECU">وحدة ECU مدعومة</span></div>
+    <div class="hero-stat"><span class="val">7</span><span class="lbl" data-k="statStages">مراحل التحليل</span></div>
+    <div class="hero-stat"><span class="val">16</span><span class="lbl" data-k="statTabs">تبويباً متخصصاً</span></div>
+    <div class="hero-stat"><span class="val">24/7</span><span class="lbl" data-k="statSupport">دعم فني</span></div>
+  </div>
+  <div class="pipeline-banner">
+    <div class="pipe-step">
+      <div class="pipe-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+      <div class="pipe-info"><span class="pipe-num">01</span><span class="pipe-label">SW ID</span></div>
+    </div>
+    <span class="pipe-arrow">←</span>
+    <div class="pipe-step">
+      <div class="pipe-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg></div>
+      <div class="pipe-info"><span class="pipe-num">02</span><span class="pipe-label">Feature</span></div>
+    </div>
+    <span class="pipe-arrow">←</span>
+    <div class="pipe-step">
+      <div class="pipe-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"><path d="M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z"/></svg></div>
+      <div class="pipe-info"><span class="pipe-num">03</span><span class="pipe-label">Pattern</span></div>
+    </div>
+    <span class="pipe-arrow">←</span>
+    <div class="pipe-step">
+      <div class="pipe-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+      <div class="pipe-info"><span class="pipe-num">04</span><span class="pipe-label">Context</span></div>
+    </div>
+    <span class="pipe-arrow">←</span>
+    <div class="pipe-step">
+      <div class="pipe-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+      <div class="pipe-info"><span class="pipe-num">05</span><span class="pipe-label">Rules</span></div>
+    </div>
+    <span class="pipe-arrow">←</span>
+    <div class="pipe-step">
+      <div class="pipe-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <div class="pipe-info"><span class="pipe-num">06</span><span class="pipe-label">Checksum</span></div>
+    </div>
+    <span class="pipe-arrow">←</span>
+    <div class="pipe-step">
+      <div class="pipe-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>
+      <div class="pipe-info"><span class="pipe-num">07</span><span class="pipe-label">Diff Learn</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SPLASH -->
+<section class="section" id="splash">
+  <div class="section-tag" data-k="tagStart">البداية</div>
+  <div class="section-title" data-k="splashTitle">شاشة البداية</div>
+  <div class="section-sub" data-k="splashSub">تظهر تلقائياً عند تشغيل البرنامج وتوضح مراحل التحميل</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+      </div>
+      <h3 data-k="splashCard1T">الحلقة الدوارة والمتحركة</h3>
+      <p data-k="splashCard1D">رمز ⚙ يدور مع حلقتين متداخلتين — تشير إلى أن البرنامج يعمل ويهيّئ المكونات بشكل صحيح</p>
+    </div>
+    <div class="card">
+      <div class="card-icon blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+      </div>
+      <h3 data-k="splashCard2T">شريط التقدم السبعي</h3>
+      <p data-k="splashCard2D">يملأ تدريجياً ليعكس تقدم التحميل عبر 7 مراحل: قاعدة البيانات → المكتبات → كاشف الميزات → محرك التعلم → الترخيص → قواعد الضبط → الجاهزية</p>
+    </div>
+    <div class="card">
+      <div class="card-icon purple">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      </div>
+      <h3 data-k="splashCard3T">مربعات Pipeline</h3>
+      <p data-k="splashCard3D">7 مربعات تضيء بالتسلسل: SW ID ← Feature ← Pattern ← Context ← Rules ← Checksum ← Diff Learn</p>
+    </div>
+    <div class="card">
+      <div class="card-icon green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <h3 data-k="splashCard4T">الانتقال التلقائي</h3>
+      <p data-k="splashCard4D">بعد اكتمال التحميل تختفي الشاشة بتلاشي ناعم وتنتقل مباشرة لنافذة تفعيل الترخيص</p>
+    </div>
+  </div>
+</section>
+
+<!-- LICENSE -->
+<section class="section" id="license">
+  <div class="section-tag" data-k="tagLicense">الترخيص</div>
+  <div class="section-title" data-k="licTitle">تفعيل الترخيص</div>
+  <div class="section-sub" data-k="licSub">أول نافذة تظهر قبل الدخول للبرنامج. لا تحتاج إنترنت — الترخيص يُتحقق منه محلياً</div>
+  <div class="grid-3" style="margin-bottom:24px">
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      </div>
+      <h3 data-k="licCard1T">معرّف الجهاز (HWID)</h3>
+      <p data-k="licCard1D">رمز مشفّر خاص بجهازك. انسخه وأرسله للدعم الفني للحصول على مفتاح ترخيص مخصص لجهازك.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon purple">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+      </div>
+      <h3 data-k="licCard2T">لصق المفتاح</h3>
+      <p data-k="licCard2D">الصق المفتاح في حقل النص، أو انقر <strong>Paste from Clipboard</strong> للنسخ من الحافظة مباشرة.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <h3 data-k="licCard3T">تفعيل فوري</h3>
+      <p data-k="licCard3D">بعد نجاح التفعيل يُحفظ الترخيص محلياً ولا تحتاج إعادة الإدخال. مرتبط بجهازك فقط.</p>
+    </div>
+  </div>
+  <div class="tip-box info">
+    <span class="tip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+    <div class="tip-text"><strong data-k="licSteps">خطوات الحصول على الترخيص:</strong> <span data-k="licStepsDesc">انسخ HWID الظاهر في النافذة ← أرسله على واتساب +970595438486 ← استلم مفتاحك ← الصقه وانقر Activate</span></div>
+  </div>
+</section>
+
+<!-- HEADER -->
+<section class="section" id="header">
+  <div class="section-tag" data-k="tagUI">الواجهة</div>
+  <div class="section-title" data-k="headerTitle">الشريط الرئيسي</div>
+  <div class="section-sub" data-k="headerSub">يظهر دائماً في أعلى النافذة ويتحكم بالإعدادات العامة</div>
+  <div class="grid-4" style="margin-bottom:24px">
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </div>
+      <h3 data-k="hCard1T">تبديل الثيم</h3>
+      <p data-k="hCard1D">Dark ⇄ Light — يتغير فوراً ويُحفظ تلقائياً</p>
+    </div>
+    <div class="card">
+      <div class="card-icon blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      </div>
+      <h3 data-k="hCard2T">اللغة</h3>
+      <p data-k="hCard2D">EN / AR / FR / DE / TR — تغيير فوري للواجهة</p>
+    </div>
+    <div class="card">
+      <div class="card-icon green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <h3 data-k="hCard3T">حالة الترخيص</h3>
+      <p data-k="hCard3D">● أخضر = مرخّص | ● أحمر = لا ترخيص</p>
+    </div>
+    <div class="card">
+      <div class="card-icon purple">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+      </div>
+      <h3 data-k="hCard4T">Change Key</h3>
+      <p data-k="hCard4D">تغيير مفتاح الترخيص عند التجديد أو تغيير الجهاز</p>
+    </div>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section class="section" id="pipeline">
+  <div class="section-tag" data-k="tagProcess">المعالجة</div>
+  <div class="section-title" data-k="pipeTitle">خط الأنابيب السبعي</div>
+  <div class="section-sub" data-k="pipeSub">كل تحليل يمر بهذه المراحل بالتسلسل — يمكن متابعتها مباشرة في شريط Pipeline</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th style="width:50px" data-k="tNum">رقم</th><th data-k="tName">اسم المرحلة</th><th data-k="tDesc">ما تفعله</th><th data-k="tColor">مؤشر اللون</th></tr></thead>
+      <tbody>
+        <tr><td><code>01</code></td><td><strong>SW ID Extraction</strong></td><td data-k="p1d">استخراج معرّف البرمجيات من ملف BIN</td><td><span style="color:var(--accent)">●</span> <span data-k="p1c">برتقالي</span></td></tr>
+        <tr><td><code>02</code></td><td><strong>Feature Detection</strong></td><td data-k="p2d">كشف وجود DPF / EGR / SCR / IMMO / DTC</td><td><span style="color:var(--accent2)">●</span> <span data-k="p2c">أزرق</span></td></tr>
+        <tr><td><code>03</code></td><td><strong>Pattern Matching</strong></td><td data-k="p3d">البحث عن الأنماط المعروفة في الذاكرة</td><td><span style="color:var(--accent2)">●</span> <span data-k="p3c">أزرق</span></td></tr>
+        <tr><td><code>04</code></td><td><strong>Context Validation</strong></td><td data-k="p4d">التحقق من السياق حول كل نمط لضمان الدقة</td><td><span style="color:var(--accent3)">●</span> <span data-k="p4c">بنفسجي</span></td></tr>
+        <tr><td><code>05</code></td><td><strong>Rule Engine</strong></td><td data-k="p5d">تطبيق قواعد الضبط وتنفيذ التعديلات</td><td><span style="color:var(--accent3)">●</span> <span data-k="p5c">بنفسجي</span></td></tr>
+        <tr><td><code>06</code></td><td><strong>Checksum Update</strong></td><td data-k="p6d">حساب وتحديث قيمة Checksum للملف المعدّل</td><td><span style="color:var(--yellow)">●</span> <span data-k="p6c">أصفر</span></td></tr>
+        <tr><td><code>07</code></td><td><strong>Diff Learning</strong></td><td data-k="p7d">حفظ التغييرات في قاعدة التعلم لتوليد سكريبتات مستقبلاً</td><td><span style="color:var(--green)">●</span> <span data-k="p7c">أخضر</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="margin-top:16px;display:flex;gap:12px;flex-wrap:wrap">
+    <div class="tip-box info" style="flex:1;margin:0">
+      <span class="tip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+      <div class="tip-text"><strong data-k="pOrange">برتقالي متحرك</strong> = <span data-k="pOrangeD">المرحلة تعمل الآن</span></div>
+    </div>
+    <div class="tip-box success" style="flex:1;margin:0">
+      <span class="tip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+      <div class="tip-text"><strong data-k="pGreen">✔ أخضر</strong> = <span data-k="pGreenD">اكتملت المرحلة بنجاح</span></div>
+    </div>
+    <div class="tip-box danger" style="flex:1;margin:0">
+      <span class="tip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span>
+      <div class="tip-text"><strong data-k="pRed">✘ أحمر</strong> = <span data-k="pRedD">حدث خطأ في هذه المرحلة</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ANALYSIS -->
+<section class="section" id="analysis">
+  <div class="section-tag" data-k="tab01">التبويب 01</div>
+  <div class="section-title" data-k="analysisTitle">تبويب التحليل</div>
+  <div class="section-sub" data-k="analysisSub">أول وأهم تبويب. يُجري التحليل الكامل عبر 7 مراحل ويعرض نتائج مجزأة شاملة</div>
+  <div class="tip-box warn" style="margin-bottom:24px">
+    <span class="tip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+    <div class="tip-text"><strong data-k="analysisOrder">ترتيب العمل:</strong> <span data-k="analysisOrderD">اختر الملف ← اختر Stage ← انقر ▶ Analyze ← راجع النتائج في هذا التبويب</span></div>
+  </div>
+  <div class="grid-2" style="margin-bottom:20px">
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <h3 data-k="aCard1T">تحديد الملف</h3>
+      <p data-k="aCard1D">استخدم زر <strong>Browse</strong> أو اسحب ملف BIN مباشرة إلى المنطقة المخصصة. يقبل ملفات .bin فقط.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+      <h3 data-k="aCard2T">اختيار المرحلة</h3>
+      <p data-k="aCard2D">من قائمة Stage اختر مستوى الضبط التلقائي (1/2/3) قبل الضغط على Analyze.</p>
+    </div>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div><span class="code-title" data-k="aCodeTitle">مثال على نتائج التحليل</span></div>
+    <pre>
+  <span class="hl-key">FILE</span>    /home/user/ecu_backup.bin
+  <span class="hl-key">SHA256</span>  a3f8b2c1d4e5f6a7b8c9d0e1f2a3b4c5...
+  <span class="hl-key">SIZE</span>    524,288 bytes  <span class="hl-comment">(512 KB)</span>
+  <span class="hl-key">ENTROPY</span> 7.2341
+  <span class="hl-key">SW ID</span>   <span class="hl-str">EDC17C10_SW_0262_001</span>
+
+  <span class="hl-ok">✔ VARIANT</span>  EDC17C10
+  <span class="hl-key">ECU</span>     <span class="hl-str">Bosch EDC17C10</span>  <span class="hl-comment">(VW/Audi TDI 2.0L)</span>
+  <span class="hl-key">SCORE</span>   95   <span class="hl-key">CONFIDENCE</span>  <span class="hl-val">95%</span>
+
+  <span class="hl-comment">─── Feature Detection ───────────────────</span>
+  <span class="hl-ok">  ✔  DPF</span>  — found at: 0xB400, 0x1A20
+  <span class="hl-ok">  ✔  EGR</span>  — found at: 0xA200, 0x2B40
+  <span class="hl-comment">  ○  SCR / AdBlue  — not detected</span>
+  <span class="hl-ok">  ✔  IMMO</span> — found at: 0x0200
+  <span class="hl-warn">  ✔  DTC</span>  — active (3 codes found)
+  <span class="hl-ok">  ✔  Boost Map</span> — detected at 0xA500
+  <span class="hl-comment">─────────────────────────────────────────</span>
+
+  <span class="hl-acc">⚡ AUTO-TUNE LOG — Stage 1</span>
+  <span class="hl-ok">  ✔ Fuel Map  +10%</span>  |  256 cells  |  avg +318
+  <span class="hl-ok">  ✔ EGR rate  → 20%</span>  |  orig=01 01 01
+  <span class="hl-ok">  ✔ Boost lim +5%</span>   |  8000 → 8400  |  0xA500
+  <span class="hl-ok">  ⚡ Saved</span>  → output/ecu_backup_stage1.bin
+    </pre>
+  </div>
+</section>
+
+<!-- FUEL MAPS -->
+<section class="section" id="fuelmaps">
+  <div class="section-tag" data-k="tab02">التبويب 02</div>
+  <div class="section-title" data-k="fuelTitle">خرائط الوقود</div>
+  <div class="section-sub" data-k="fuelSub">استخراج وعرض وتصدير جدول الوقود بتصوير ملوّن يسهّل القراءة</div>
+  <div class="grid-3" style="margin-bottom:20px">
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      </div>
+      <h3 data-k="fCard1T">حقل Offset</h3>
+      <p data-k="fCard1D">عنوان الذاكرة الذي تبدأ منه خريطة الوقود. يُكتشف تلقائياً عند معرفة نوع ECU. مثال: <code>0x8000</code></p>
+    </div>
+    <div class="card">
+      <div class="card-icon blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      </div>
+      <h3 data-k="fCard2T">Rows × Cols</h3>
+      <p data-k="fCard2D">أبعاد الجدول. القيمة الشائعة <code>16×16</code> (256 خلية). يمكن تغييرها من 4 إلى 32.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon purple">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      </div>
+      <h3 data-k="fCard3T">أنواع البيانات</h3>
+      <p data-k="fCard3D"><code>uint16_le</code> الأشيع — عدد 16 بت Little-Endian. استخدم uint8 للوحدات القديمة.</p>
+    </div>
+  </div>
+  <div class="tip-box success">
+    <span class="tip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span>
+    <div class="tip-text"><strong data-k="fTip">Before/After:</strong> <span data-k="fTipD">انقر هذا الزر بعد تطبيق Stage Tune لمقارنة الجدول قبل وبعد — يعرض عدد الخلايا المتغيرة ومتوسط الفرق ونسبة التغيير الإجمالية</span></div>
+  </div>
+</section>
+
+<!-- BOOST MAP -->
+<section class="section" id="boostmap">
+  <div class="section-tag" data-k="tab03">التبويب 03</div>
+  <div class="section-title" data-k="boostTitle">خريطة الضغط</div>
+  <div class="section-sub" data-k="boostSub">عرض وتحرير خريطة ضغط التوربو مباشرة — مع حماية من تجاوز الحدود الآمنة</div>
+  <div class="grid-2" style="margin-bottom:20px">
+    <div class="card">
+      <div class="card-icon yellow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <h3 data-k="bCard1T">تحذيرات آنية</h3>
+      <p data-k="bCard1D">عند تحرير أي خلية وتجاوز القيمة للحد الآمن <strong>2.8 بار</strong>، تظهر رسالة تحذير فورية:</p>
+      <div class="code-block" style="margin-top:10px"><pre style="padding:10px 16px;font-size:11px"><span class="hl-warn">⚠ Cell (3,5)= 35000 (~3.50 bar) exceeds limit!</span></pre></div>
+    </div>
+    <div class="card">
+      <div class="card-icon blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      </div>
+      <h3 data-k="bCard2T">Apply to BIN</h3>
+      <p data-k="bCard2D">يطبق التعديلات مباشرة على ملف BIN ويحفظ نسخة معدّلة في مجلد <code>output</code> باسم يتضمن التاريخ والوقت.</p>
+    </div>
+  </div>
+  <div class="tip-box danger">
+    <span class="tip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+    <div class="tip-text"><strong data-k="bWarn">تحذير مهم:</strong> <span data-k="bWarnD">تعديل خريطة الضغط بدون ترقية صلبة مناسبة (إنتركولر، خراطيم، مضخة وقود) قد يتسبب بأعطال خطيرة. الحد الأقصى الآمن للضغط هو <strong>2.8 بار</strong>.</span></div>
+  </div>
+</section>
+
+<!-- TUNE -->
+<section class="section" id="tune">
+  <div class="section-tag" data-k="tab04">التبويب 04</div>
+  <div class="section-title" data-k="tuneTitle">DPF / EGR / IMMO / Tune</div>
+  <div class="section-sub" data-k="tuneSub">التبويب الأكثر استخداماً — يجمع حذف المرشحات وتعطيل الإيموبلايزر والضبط التلقائي</div>
+  <div class="grid-3" style="margin-bottom:28px">
+    <div class="card">
+      <div class="card-icon red">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+      </div>
+      <h3 data-k="tCard1T">DPF Delete</h3>
+      <p data-k="tCard1D">حذف نظام مرشح الجسيمات. يُعطّل أوامر التجديد الدوري ويزيل الحماية من انسداد الفلتر. مخصص للمركبات المستخدمة في السباقات.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"><path d="M2.5 2v6h6M2.66 15.57a10 10 0 1 0 .57-8.38"/></svg>
+      </div>
+      <h3 data-k="tCard2T">EGR Delete</h3>
+      <p data-k="tCard2D">تعطيل نظام إعادة تدوير العادم. يُحسّن نقاء الهواء الداخل للمحرك ويزيد من استجابة الإضرام وكفاءة الاحتراق.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon purple">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <h3 data-k="tCard3T">IMMO Off</h3>
+      <p data-k="tCard3D">تعطيل نظام منع السرقة الإلكتروني. ضروري عند تبديل وحدة ECU أو المفتاح أو لوحة الجسم BCM.</p>
+    </div>
+  </div>
+  <h3 style="font-size:20px;font-weight:800;margin-bottom:16px" data-k="stageLevels">مستويات الضبط التلقائي</h3>
+  <div class="stage-cards">
+    <div class="stage-card s1">
+      <span class="pct">+10%</span>
+      <div class="stage-label">STAGE 1</div>
+      <h3 data-k="s1T">ضبط خفيف</h3>
+      <ul class="stage-features">
+        <li data-k="s1f1">زيادة خريطة الوقود +10%</li>
+        <li data-k="s1f2">تخفيض EGR إلى 20%</li>
+        <li data-k="s1f3">زيادة ضغط التوربو +5%</li>
+        <li data-k="s1f4">آمن للاستخدام اليومي</li>
+        <li data-k="s1f5">لا يحتاج ترقيات هاردوير</li>
+      </ul>
+      <div class="stage-warning" data-k="s1w">✔ مناسب للسيارات الاجتماعية</div>
+    </div>
+    <div class="stage-card s2">
+      <span class="pct">+20%</span>
+      <div class="stage-label">STAGE 2</div>
+      <h3 data-k="s2T">ضبط متوسط</h3>
+      <ul class="stage-features">
+        <li data-k="s2f1">زيادة خريطة الوقود +20%</li>
+        <li data-k="s2f2">زيادة ضغط السكة +15%</li>
+        <li data-k="s2f3">زيادة ضغط التوربو +12%</li>
+        <li data-k="s2f4">زيادة حد عزم الدوران +10%</li>
+        <li data-k="s2f5">تعطيل EGR كلياً</li>
+      </ul>
+      <div class="stage-warning" data-k="s2w">⚠ يحتاج فحص على الدايناميتر</div>
+    </div>
+    <div class="stage-card s3">
+      <span class="pct">+30%</span>
+      <div class="stage-label">STAGE 3</div>
+      <h3 data-k="s3T">أقصى طاقة</h3>
+      <ul class="stage-features">
+        <li data-k="s3f1">زيادة خريطة الوقود +30%</li>
+        <li data-k="s3f2">إزالة حد عزم الدوران كلياً</li>
+        <li data-k="s3f3">ضغط التوربو +20%</li>
+        <li data-k="s3f4">ضغط سكة الوقود +25%</li>
+        <li data-k="s3f5">تعطيل DPF + EGR</li>
+      </ul>
+      <div class="stage-warning" data-k="s3w">🔴 يتطلب ترقيات هاردوير كاملة</div>
+    </div>
+  </div>
+  <div class="tip-box warn" style="margin-top:20px">
+    <span class="tip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+    <div class="tip-text"><strong data-k="preCheck">الفحص المسبق للميزات:</strong> <span data-k="preCheckD">قبل تطبيق أي تعديل، يفحص البرنامج تلقائياً وجود DPF/EGR/IMMO في الملف ويعرض تحذيراً إذا لم تُكتشف.</span></div>
+  </div>
+</section>
+
+<!-- PATCH MANAGER -->
+<section class="section" id="patchmgr">
+  <div class="section-tag" data-k="tab05">التبويب 05</div>
+  <div class="section-title" data-k="patchTitle">مدير التصحيحات</div>
+  <div class="section-sub" data-k="patchSub">إضافة وإدارة وتطبيق تصحيحات مخصصة مباشرة على ملفات BIN</div>
+  <div class="table-wrap" style="margin-bottom:20px">
+    <table>
+      <thead><tr><th data-k="pField">الحقل</th><th data-k="pDesc">الوصف</th><th data-k="pEx">مثال</th></tr></thead>
+      <tbody>
+        <tr><td><strong>ID</strong></td><td data-k="patch1">معرّف فريد للتصحيح</td><td><code>my_dpf_patch</code></td></tr>
+        <tr><td><strong>Name</strong></td><td data-k="patch2">وصف ما يفعله</td><td>DPF Delete VW Golf</td></tr>
+        <tr><td><strong>Offset</strong></td><td data-k="patch3">عنوان في الذاكرة</td><td><code>0xB400</code></td></tr>
+        <tr><td><strong>Find</strong></td><td data-k="patch4">البايتات الأصلية (hex)</td><td><code>01 00 01</code></td></tr>
+        <tr><td><strong>Replace</strong></td><td data-k="patch5">البايتات الجديدة (hex)</td><td><code>00 00 00</code></td></tr>
+        <tr><td><strong>ECU ID</strong></td><td data-k="patch6">معرّف وحدة التحكم</td><td><code>edc17c10</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="tip-box info">
+    <span class="tip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+    <div class="tip-text"><strong data-k="patchApply">التطبيق:</strong> <span data-k="patchApplyD">ضع علامة ✓ على التصحيحات المطلوبة ← انقر Apply Selected Patches ← يُحفظ الملف الجديد تلقائياً بنفس اسم الأصل مع إضافة <code>_patched</code></span></div>
+  </div>
+</section>
+
+<!-- OBD -->
+<section class="section" id="obd">
+  <div class="section-tag" data-k="tab06">التبويب 06</div>
+  <div class="section-title" data-k="obdTitle">OBD / CAN</div>
+  <div class="section-sub" data-k="obdSub">تحليل سجلات ELM327 وبيانات CAN Bus مع فك تشفير تلقائي لقيم PIDs وأكواد DTC</div>
+  <div class="grid-2" style="margin-bottom:20px">
+    <div>
+      <h4 style="margin-bottom:12px;font-weight:800" data-k="obdSample">مثال على سجل OBD-II:</h4>
+      <div class="code-block">
+        <div class="code-header"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div><span class="code-title">ELM327 Log</span></div>
+        <pre><span class="hl-comment">> 01 04</span>
+41 04 55
+<span class="hl-comment">> 01 0C</span>
+41 0C 0F A0
+P0400
+P2002</pre>
+      </div>
+    </div>
+    <div>
+      <h4 style="margin-bottom:12px;font-weight:800" data-k="obdResult">النتائج بعد Parse:</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>PID</th><th data-k="obdVal">القيمة</th><th data-k="obdUnit">الوحدة</th></tr></thead>
+          <tbody>
+            <tr><td>Engine Load</td><td style="color:var(--green)"><strong>33.3</strong></td><td>%</td></tr>
+            <tr><td>Engine RPM</td><td><strong>1000.0</strong></td><td>RPM</td></tr>
+            <tr><td>P0400 — EGR</td><td style="color:var(--red)"><strong>DTC Active</strong></td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- POPS -->
+<section class="section" id="pops">
+  <div class="section-tag" data-k="tab07">التبويب 07</div>
+  <div class="section-title" data-k="popsTitle">Pops &amp; Bangs</div>
+  <div class="section-sub" data-k="popsSub">إضافة تأثير الفرقعة والطقطقة في العادم بثلاثة مستويات</div>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-icon green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+      </div>
+      <h3 data-k="pop1T">Mild — خفيف</h3>
+      <p data-k="pop1D">طقطقة خفيفة عند رفع القدم. آمن للاستخدام اليومي والسيارات الاجتماعية.</p>
+      <div class="pops-value">Overrun: 0x18 | Inject: 0x20<br>Delay: 0x14 | Retard: 5°</div>
+    </div>
+    <div class="card">
+      <div class="card-icon yellow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+      </div>
+      <h3 data-k="pop2T">Aggressive — قوي</h3>
+      <p data-k="pop2D">انفجارات قوية أثناء التباطؤ. مسموع بوضوح ومناسب للمضمار.</p>
+      <div class="pops-value">Overrun: 0x40 | Inject: 0x50<br>Delay: 0x32 | Retard: 15°</div>
+    </div>
+    <div class="card">
+      <div class="card-icon red">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+      </div>
+      <h3 data-k="pop3T">Full Crackle — أقصى</h3>
+      <p data-k="pop3D">أقصى تأثير. فرقعة مستمرة وصاخبة. للسيارات المخصصة للمضمار فقط.</p>
+      <div class="pops-value">Overrun: 0x70 | Inject: 0x80<br>Delay: 0x50 | Retard: 30°</div>
+    </div>
+  </div>
+</section>
+
+<!-- DIFF -->
+<section class="section" id="diff">
+  <div class="section-tag" data-k="tab08">التبويب 08</div>
+  <div class="section-title" data-k="diffTitle">مقارنة BIN</div>
+  <div class="section-sub" data-k="diffSub">قارن ملفين BIN وإيجاد كل الاختلافات — مع إمكانية تعليم الفروق تلقائياً</div>
+  <div class="code-block" style="margin-bottom:20px">
+    <div class="code-header"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div><span class="code-title" data-k="diffResult">مثال نتيجة المقارنة</span></div>
+    <pre>
+  <span class="hl-key">Offset</span>      <span class="hl-key">Original</span>           <span class="hl-key">Modified</span>           <span class="hl-key">Length</span>
+  ──────────────────────────────────────────────────────
+  0x00B400    <span class="hl-err">01 00 01</span>           <span class="hl-ok"> 00 00 00</span>           3 bytes
+  0x00A200    <span class="hl-err">01 01 01</span>           <span class="hl-ok"> 00 00 00</span>           3 bytes
+  0x000200    <span class="hl-err">A5 A5 A5 A5</span>        <span class="hl-ok"> 00 00 00 00</span>        4 bytes
+
+  <span class="hl-acc">3 regions | 10 bytes changed</span>
+    </pre>
+  </div>
+  <div class="tip-box success">
+    <span class="tip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>
+    <div class="tip-text"><strong data-k="learnDiff">Learn This Diff:</strong> <span data-k="learnDiffD">بعد المقارنة انقر هذا الزر مع تحديد نوع ECU والعملية (مثل DPF_DELETE). يُحفظ الفرق في قاعدة التعلم ليُستخدم لاحقاً في توليد سكريبتات تلقائية.</span></div>
+  </div>
+</section>
+
+<!-- HEX VIEW -->
+<section class="section" id="hexview">
+  <div class="section-tag" data-k="tab09">التبويب 09</div>
+  <div class="section-title" data-k="hexTitle">عرض Hex</div>
+  <div class="section-sub" data-k="hexSub">تصفح محتوى ملف BIN بصيغة الهيكساديسيمال مع التمثيل النصي</div>
+  <div class="code-block">
+    <div class="code-header"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div><span class="code-title">hex view — offset 0x0020</span></div>
+    <pre>
+  <span class="hl-comment">Address   Hexadecimal                                       ASCII</span>
+  00000020  <span class="hl-acc">45 44 43</span> 31 37 43 31 30 00 00 00 00 00 00 00 00  <span class="hl-ok">EDC17C10</span>........
+  00000030  FF FF FF FF 01 00 00 00 A5 A5 A5 A5 00 00 00 00  ................
+    </pre>
+  </div>
+</section>
+
+<!-- JOB LOG -->
+<section class="section" id="joblog">
+  <div class="section-tag" data-k="tab10">التبويب 10</div>
+  <div class="section-title" data-k="jobTitle">سجل الأعمال</div>
+  <div class="section-sub" data-k="jobSub">سجّل كل عمل ضبط أجريته للرجوع إليه لاحقاً وإصدار تقارير للعملاء</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      </div>
+      <h3 data-k="jobCard1T">إضافة سجل جديد</h3>
+      <p data-k="jobCard1D">اكتب بيانات المركبة: الماركة، الموديل، السنة، VIN، نوع ECU، العمليات المنجزة، والملاحظات. ثم انقر Add Job.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+      </div>
+      <h3 data-k="jobCard2T">البحث والتصدير</h3>
+      <p data-k="jobCard2D">ابحث بأي كلمة في سجلاتك. ألوان الحالة: <span style="color:var(--green)">أخضر = مكتمل</span> | <span style="color:var(--yellow)">برتقالي = جاري</span> | <span style="color:var(--red)">أحمر = ملغى</span>. صدّر الكل كـ CSV.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CRM -->
+<section class="section" id="crm">
+  <div class="section-tag" data-k="tab11">التبويب 11</div>
+  <div class="section-title" data-k="crmTitle">إدارة العملاء (CRM)</div>
+  <div class="section-sub" data-k="crmSub">قاعدة بيانات منظّمة لعملائك مع إمكانية البحث السريع</div>
+  <div class="tip-box info">
+    <span class="tip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+    <div class="tip-text"><strong data-k="crmTip">التعديل السريع:</strong> <span data-k="crmTipD">انقر على أي صف في الجدول ← تتعبّأ البيانات تلقائياً في النموذج ← عدّل ما تريد ← انقر Update Selected</span></div>
+  </div>
+</section>
+
+<!-- SCRIPTS -->
+<section class="section" id="scripts">
+  <div class="section-tag" data-k="tab12">التبويب 12 — متقدم</div>
+  <div class="section-title" data-k="scriptsTitle">محرك السكريبتات</div>
+  <div class="section-sub" data-k="scriptsSub">أداة الضبط الأكثر دقة وأماناً — يبحث عن أنماط محددة ويتحقق من السياق قبل أي تعديل</div>
+  <div class="tip-box warn" style="margin-bottom:24px">
+    <span class="tip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+    <div class="tip-text"><strong data-k="scriptAdv">ما يميز Script Engine:</strong> <span data-k="scriptAdvD">بدلاً من الكتابة في عنوان ثابت، يبحث عن نمط بايتات ثم يتحقق من البايتات المحيطة (context) قبل التعديل — هذا يجعله آمناً مع ملفات ECU المختلفة من نفس النوع</span></div>
+  </div>
+  <h4 style="font-size:16px;font-weight:800;margin-bottom:14px" data-k="scriptStructure">بنية ملف JSON للسكريبت</h4>
+  <div class="code-block">
+    <div class="code-header"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div><span class="code-title">dpf_delete_edc17c10.json</span></div>
+    <pre>
+{
+  <span class="hl-key">"id"</span>:         <span class="hl-str">"dpf_delete_edc17c10"</span>,
+  <span class="hl-key">"name"</span>:       <span class="hl-str">"DPF Delete - VW/Audi TDI EDC17C10"</span>,
+  <span class="hl-key">"ecu_family"</span>: <span class="hl-str">"EDC17C10"</span>,
+  <span class="hl-key">"steps"</span>: [
+    {
+      <span class="hl-key">"name"</span>:               <span class="hl-str">"Disable DPF flag"</span>,
+      <span class="hl-key">"search_pattern"</span>:     <span class="hl-str">"01 00 01"</span>,
+      <span class="hl-key">"context_before"</span>:    <span class="hl-str">"FF FF"</span>,
+      <span class="hl-key">"write_bytes"</span>:       <span class="hl-str">"00 00 00"</span>,
+      <span class="hl-key">"write_mode"</span>:        <span class="hl-str">"replace"</span>,
+      <span class="hl-key">"skip_if_already"</span>:  <span class="hl-val">true</span>
+    }
+  ]
+}
+    </pre>
+  </div>
+</section>
+
+<!-- FEATURE DETECTION TAB -->
+<section class="section" id="features-tab">
+  <div class="section-tag" data-k="tab13">التبويب 13 — جديد v5</div>
+  <div class="section-title" data-k="featTitle">كشف الميزات</div>
+  <div class="section-sub" data-k="featSub">فحص تلقائي لوجود DPF/EGR/SCR/IMMO/DTC/Boost قبل أي تعديل</div>
+  <div class="feature-grid" style="margin-bottom:20px">
+    <div class="feature-card dpf">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></div>
+      <div class="feature-name">DPF</div>
+      <div class="feature-desc" data-k="fdpf">مرشح الجسيمات الديزلية</div>
+    </div>
+    <div class="feature-card egr">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"><path d="M2.5 2v6h6M2.66 15.57a10 10 0 1 0 .57-8.38"/></svg></div>
+      <div class="feature-name">EGR</div>
+      <div class="feature-desc" data-k="fegr">إعادة تدوير العادم</div>
+    </div>
+    <div class="feature-card scr">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg></div>
+      <div class="feature-name">SCR</div>
+      <div class="feature-desc" data-k="fscr">AdBlue / DEF / Urea</div>
+    </div>
+    <div class="feature-card immo">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+      <div class="feature-name">IMMO</div>
+      <div class="feature-desc" data-k="fimmo">نظام منع السرقة</div>
+    </div>
+    <div class="feature-card dtc">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <div class="feature-name">DTC</div>
+      <div class="feature-desc" data-k="fdtc">رموز الأعطال النشطة</div>
+    </div>
+    <div class="feature-card boost">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M22 2l-5 5"/><path d="M17 2h5v5"/></svg></div>
+      <div class="feature-name">BOOST</div>
+      <div class="feature-desc" data-k="fboost">خريطة ضغط التوربو</div>
+    </div>
+  </div>
+  <div class="tip-box success">
+    <span class="tip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h10M7 12h5"/></svg></span>
+    <div class="tip-text"><strong data-k="genScript">Generate Script from Features:</strong> <span data-k="genScriptD">بعد الكشف، انقر هذا الزر ليقوم البرنامج تلقائياً بتوليد سكريبت JSON للميزات المكتشفة — يستخدم بيانات Diff Learning إن وُجدت</span></div>
+  </div>
+</section>
+
+<!-- DIFF LEARNING -->
+<section class="section" id="difflearn">
+  <div class="section-tag" data-k="tab14">التبويب 14 — جديد v5</div>
+  <div class="section-title" data-k="learnTitle">تعلم الفروق (Diff Learning)</div>
+  <div class="section-sub" data-k="learnSub">كل تعديل تجريه يُحفظ تلقائياً — بمرور الوقت يتعلم البرنامج ويولّد سكريبتات بنفسه</div>
+  <div class="grid-3" style="margin-bottom:24px">
+    <div class="card">
+      <div class="card-icon cyan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      </div>
+      <h3 data-k="lCard1T">Total Diffs</h3>
+      <p data-k="lCard1D">إجمالي الفروق المحفوظة في قاعدة البيانات من جميع العمليات</p>
+    </div>
+    <div class="card">
+      <div class="card-icon green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <h3 data-k="lCard2T">Confirmed</h3>
+      <p data-k="lCard2D">الفروق المؤكدة (شوهدت مرة واحدة أو أكثر). هذه فقط تُستخدم لتوليد السكريبتات</p>
+    </div>
+    <div class="card">
+      <div class="card-icon blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+      </div>
+      <h3 data-k="lCard3T">Scripts Generated</h3>
+      <p data-k="lCard3D">عدد السكريبتات التي وُلّدت تلقائياً من الفروق المتراكمة</p>
+    </div>
+  </div>
+  <h4 style="font-size:16px;font-weight:800;margin-bottom:14px" data-k="howLearn">كيف يعمل التعلم التلقائي؟</h4>
+  <div class="workflow">
+    <div class="wf-step">
+      <div class="wf-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
+      <div class="wf-num">01</div><h4 data-k="wf1T">تطبيق تعديل</h4><p data-k="wf1D">DPF Delete أو Stage Tune أو أي عملية</p>
+    </div>
+    <div class="wf-arrow">←</div>
+    <div class="wf-step">
+      <div class="wf-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></div>
+      <div class="wf-num">02</div><h4 data-k="wf2T">حفظ تلقائي</h4><p data-k="wf2D">يُسجّل البرنامج الفرق والسياق والعنوان</p>
+    </div>
+    <div class="wf-arrow">←</div>
+    <div class="wf-step">
+      <div class="wf-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+      <div class="wf-num">03</div><h4 data-k="wf3T">تراكم البيانات</h4><p data-k="wf3D">بتكرار نفس العملية تزداد الثقة</p>
+    </div>
+    <div class="wf-arrow">←</div>
+    <div class="wf-step">
+      <div class="wf-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg></div>
+      <div class="wf-num">04</div><h4 data-k="wf4T">توليد سكريبت</h4><p data-k="wf4D">انقر Generate → ملف JSON جاهز للاستخدام</p>
+    </div>
+  </div>
+</section>
+
+<!-- HEX CONV -->
+<section class="section" id="hexconv">
+  <div class="section-tag" data-k="tab15">التبويب 15</div>
+  <div class="section-title" data-k="hexConvTitle">تحويل HEX</div>
+  <div class="section-sub" data-k="hexConvSub">تحويل الملفات بين BIN وصيغ S-Record وIntel HEX</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th data-k="hcConv">التحويل</th><th data-k="hcDesc">الوصف</th><th data-k="hcUse">الاستخدام</th></tr></thead>
+      <tbody>
+        <tr><td>BIN → S-Record</td><td data-k="hc1">ملف Motorola .srec</td><td data-k="hc1u">توافق مع أدوات Motorola/Freescale</td></tr>
+        <tr><td>BIN → Intel HEX</td><td data-k="hc2">ملف .hex</td><td data-k="hc2u">برمجة المتحكمات والـ Bootloader</td></tr>
+        <tr><td>S-Record → BIN</td><td data-k="hc3">تحويل عكسي</td><td data-k="hc3u">استخدام ملفات srec كمدخل</td></tr>
+        <tr><td>Intel HEX → BIN</td><td data-k="hc4">تحويل عكسي</td><td data-k="hc4u">تحويل ملفات hex للضبط</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- WORKFLOW -->
+<section class="section" id="workflow">
+  <div class="section-tag" data-k="tagPractice">الممارسة</div>
+  <div class="section-title" data-k="wfTitle">سير العمل الموصى به</div>
+  <div class="section-sub" data-k="wfSub">اتبع هذه الخطوات لأفضل نتائج</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px">
+    <div>
+      <h4 style="font-size:16px;font-weight:800;margin-bottom:16px;color:var(--green)" data-k="beginner">للمبتدئين</h4>
+      <div class="code-block">
+        <pre style="font-size:12px">
+<span class="hl-val">١.</span> <span data-k="bStep1">افتح البرنامج ← فعّل الترخيص</span>
+      ↓
+<span class="hl-val">٢.</span> <span data-k="bStep2">اسحب ملف BIN للمنطقة المخصصة</span>
+      ↓
+<span class="hl-val">٣.</span> <span data-k="bStep3">اختر <span class="hl-acc">Stage 1</span></span>
+      ↓
+<span class="hl-val">٤.</span> <span data-k="bStep4">انقر <span class="hl-acc">▶ Analyze &amp; Auto-Tune</span></span>
+      ↓
+<span class="hl-val">٥.</span> <span data-k="bStep5">راجع نتائج تبويب <span class="hl-ok">Analysis</span></span>
+      ↓
+<span class="hl-val">٦.</span> <span data-k="bStep6">ابحث عن الملف في مجلد <span class="hl-str">output/</span></span>
+        </pre>
+      </div>
+    </div>
+    <div>
+      <h4 style="font-size:16px;font-weight:800;margin-bottom:16px;color:var(--accent)" data-k="pro">للمحترفين</h4>
+      <div class="code-block">
+        <pre style="font-size:12px">
+<span class="hl-val">١.</span> <span data-k="pStep1">حلّل الملف الأصلي (Analysis)</span>
+      ↓
+<span class="hl-val">٢.</span> <span data-k="pStep2">افحص Feature Detection</span>
+      ↓
+<span class="hl-val">٣.</span> <span data-k="pStep3">اذهب لـ <span class="hl-acc">Script Engine</span></span>
+      ↓
+<span class="hl-val">٤.</span> <span data-k="pStep4">اختر أو أنشئ سكريبتاً</span>
+      ↓
+<span class="hl-val">٥.</span> <span data-k="pStep5">استخدم <span class="hl-acc">Auto-Match &amp; Run</span></span>
+      ↓
+<span class="hl-val">٦.</span> <span data-k="pStep6">قارن النتيجة في <span class="hl-ok">BIN Diff</span></span>
+      ↓
+<span class="hl-val">٧.</span> <span data-k="pStep7">انقر <span class="hl-acc">Learn This Diff</span></span>
+        </pre>
+      </div>
+    </div>
+  </div>
+  <h4 style="font-size:16px;font-weight:800;margin:28px 0 16px" data-k="importantRules">قواعد مهمة قبل أي تعديل</h4>
+  <div class="grid-2">
+    <div class="tip-box warn">
+      <span class="tip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></span>
+      <div class="tip-text"><strong data-k="backup">النسخ الاحتياطي:</strong> <span data-k="backupD">البرنامج يحفظ نسخة احتياطية تلقائياً في مجلد <code>output/backups/</code> قبل كل تعديل.</span></div>
+    </div>
+    <div class="tip-box danger">
+      <span class="tip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+      <div class="tip-text"><strong data-k="stage3warn">Stage 3 فقط بترقيات:</strong> <span data-k="stage3warnD">لا تطبّق Stage 3 على سيارة عادية. يتطلب بخاخات مُحسّنة، مضخة وقود، وإنتركولر أكبر.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOLDERS -->
+<section class="section" id="folders">
+  <div class="section-tag" data-k="tagStructure">البنية</div>
+  <div class="section-title" data-k="foldersTitle">مجلدات البرنامج</div>
+  <div class="section-sub" data-k="foldersSub">كل ما يحفظه البرنامج وأين يجده</div>
+  <div class="folder-tree">
+    <span class="ft-dir">ECU Intelligence Pro/</span><br>
+    ├── <span class="ft-db">ecu_intel.db</span>       <span class="ft-comment" data-k="fdb1">← قاعدة البيانات الرئيسية</span><br>
+    ├── <span class="ft-db">licenses.db</span>        <span class="ft-comment" data-k="fdb2">← بيانات الترخيص المُفعَّل</span><br>
+    ├── <span class="ft-db">diff_learning.db</span>   <span class="ft-comment" data-k="fdb3">← قاعدة تعلم الفروق</span><br>
+    ├── <span class="ft-db">settings.db</span>        <span class="ft-comment" data-k="fdb4">← الإعدادات (ثيم، لغة)</span><br>
+    ├── <span class="ft-dir">scripts/</span>           <span class="ft-comment" data-k="fscripts">← مجلد سكريبتات JSON</span><br>
+    └── <span class="ft-dir">output/</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;├── <span class="ft-bin">*_stage1.bin</span>   <span class="ft-comment" data-k="fout1">← ملفات BIN المعدّلة</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;├── <span class="ft-html">*_analysis.html</span><span class="ft-comment" data-k="fout2">← تقارير HTML</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;└── <span class="ft-dir">backups/</span>       <span class="ft-comment" data-k="fout3">← نسخ احتياطية تلقائية</span>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="section" id="contact">
+  <div class="section-tag" data-k="tagSupport">الدعم</div>
+  <div class="section-title" data-k="contactTitle">الدعم الفني</div>
+  <div class="section-sub" data-k="contactSub">للمساعدة في الترخيص أو أي استفسار تقني، تواصل مباشرة</div>
+  <div class="contact-card">
+    <div>
+      <div class="contact-name" data-k="contactName">الدعم الفني</div>
+      <div class="contact-role" data-k="contactRole">متخصص معايرة وحدات التحكم الإلكترونية ECU</div>
+      <div class="contact-avail"><span class="anim-pulse">●</span> <span data-k="available">متاح 24 / 7</span></div>
+      <div class="btn-row">
+        <a href="https://wa.me/970595438486" target="_blank" class="btn btn-wa">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+          <span data-k="whatsapp">واتساب مباشر</span>
+        </a>
+        <button class="btn btn-copy" onclick="navigator.clipboard.writeText('+970595438486');this.querySelector('span').textContent='✔'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span data-k="copyNum">نسخ الرقم</span>
+        </button>
+        <a href="tel:+970595438486" class="btn btn-sec">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.65 3.12 2 2 0 0 1 3.62 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6 6l1.06-.97a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <span data-k="callBtn">اتصال</span>
+        </a>
+      </div>
+    </div>
+    <div>
+      <div style="color:var(--text3);font-size:11px;font-weight:700;margin-bottom:8px;letter-spacing:2px" data-k="phoneLabel">رقم الهاتف / واتساب</div>
+      <div class="contact-phone" dir="ltr">+970 595 438 486</div>
+    </div>
+  </div>
+  <div class="tip-box info" style="margin-top:16px">
+    <span class="tip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+    <div class="tip-text" data-k="contactTip">عند التواصل، يُرجى إرسال: <strong>معرّف الجهاز (HWID)</strong> + <strong>نوع ECU</strong> + <strong>وصف المشكلة</strong>. يمكنك إرفاق ملف BIN إذا لزم.</div>
+  </div>
+</section>
+
+</main>
+</div>
+
+<script>
+// ─── TRANSLATIONS ────────────────────────────────────────────────────────────
+const T = {
+  ar: {
+    userGuide:"دليل المستخدم", navStart:"البداية", navOverview:"نظرة عامة",
+    navSplash:"شاشة البداية", navLicense:"الترخيص", navHeader:"الشريط الرئيسي",
+    navPipeline:"خط الأنابيب", navTabs:"التبويبات", navAnalysis:"التحليل",
+    navFuel:"خرائط الوقود", navBoost:"خريطة الضغط", navTune:"DPF / EGR / Tune",
+    navPatch:"مدير التصحيحات", navOBD:"OBD / CAN", navPops:"Pops & Bangs",
+    navDiff:"مقارنة BIN", navHex:"عرض Hex", navJob:"سجل الأعمال",
+    navCRM:"العملاء", navScripts:"محرك السكريبتات", navFeatures:"كشف الميزات",
+    navLearn:"تعلم الفروق", navHexConv:"تحويل HEX", navOther:"أخرى",
+    navWorkflow:"سير العمل", navFolders:"المجلدات", navContact:"الدعم الفني",
+    heroGuide:"دليل المستخدم المجزأ",
+    heroTitle1:"كل شيء تحتاجه", heroTitle2:"لضبط وحدات التحكم",
+    heroDesc:"دليل مفصّل وسهل الفهم لجميع ميزات البرنامج، من تحليل ملفات BIN وحتى توليد السكريبتات التلقائية عبر محرك تعلم الفروق.",
+    statECU:"وحدة ECU مدعومة", statStages:"مراحل التحليل", statTabs:"تبويباً متخصصاً", statSupport:"دعم فني",
+    tagStart:"البداية", splashTitle:"شاشة البداية",
+    splashSub:"تظهر تلقائياً عند تشغيل البرنامج وتوضح مراحل التحميل",
+    splashCard1T:"الحلقة الدوارة والمتحركة", splashCard1D:"رمز ⚙ يدور مع حلقتين متداخلتين — تشير إلى أن البرنامج يعمل ويهيّئ المكونات بشكل صحيح",
+    splashCard2T:"شريط التقدم السبعي", splashCard2D:"يملأ تدريجياً ليعكس تقدم التحميل عبر 7 مراحل: قاعدة البيانات → المكتبات → كاشف الميزات → محرك التعلم → الترخيص → قواعد الضبط → الجاهزية",
+    splashCard3T:"مربعات Pipeline", splashCard3D:"7 مربعات تضيء بالتسلسل: SW ID ← Feature ← Pattern ← Context ← Rules ← Checksum ← Diff Learn",
+    splashCard4T:"الانتقال التلقائي", splashCard4D:"بعد اكتمال التحميل تختفي الشاشة بتلاشي ناعم وتنتقل مباشرة لنافذة تفعيل الترخيص",
+    tagLicense:"الترخيص", licTitle:"تفعيل الترخيص",
+    licSub:"أول نافذة تظهر قبل الدخول للبرنامج. لا تحتاج إنترنت — الترخيص يُتحقق منه محلياً",
+    licCard1T:"معرّف الجهاز (HWID)", licCard1D:"رمز مشفّر خاص بجهازك. انسخه وأرسله للدعم الفني للحصول على مفتاح ترخيص مخصص لجهازك.",
+    licCard2T:"لصق المفتاح", licCard2D:"الصق المفتاح في حقل النص، أو انقر Paste from Clipboard للنسخ من الحافظة مباشرة.",
+    licCard3T:"تفعيل فوري", licCard3D:"بعد نجاح التفعيل يُحفظ الترخيص محلياً ولا تحتاج إعادة الإدخال. مرتبط بجهازك فقط.",
+    licSteps:"خطوات الحصول على الترخيص:", licStepsDesc:"انسخ HWID الظاهر في النافذة ← أرسله على واتساب +970595438486 ← استلم مفتاحك ← الصقه وانقر Activate",
+    tagUI:"الواجهة", headerTitle:"الشريط الرئيسي",
+    headerSub:"يظهر دائماً في أعلى النافذة ويتحكم بالإعدادات العامة",
+    hCard1T:"تبديل الثيم", hCard1D:"Dark ⇄ Light — يتغير فوراً ويُحفظ تلقائياً",
+    hCard2T:"اللغة", hCard2D:"EN / AR / FR / DE / TR — تغيير فوري للواجهة",
+    hCard3T:"حالة الترخيص", hCard3D:"● أخضر = مرخّص | ● أحمر = لا ترخيص",
+    hCard4T:"Change Key", hCard4D:"تغيير مفتاح الترخيص عند التجديد أو تغيير الجهاز",
+    tagProcess:"المعالجة", pipeTitle:"خط الأنابيب السبعي",
+    pipeSub:"كل تحليل يمر بهذه المراحل بالتسلسل — يمكن متابعتها مباشرة في شريط Pipeline",
+    tNum:"رقم", tName:"اسم المرحلة", tDesc:"ما تفعله", tColor:"مؤشر اللون",
+    p1d:"استخراج معرّف البرمجيات من ملف BIN", p1c:"برتقالي",
+    p2d:"كشف وجود DPF / EGR / SCR / IMMO / DTC", p2c:"أزرق",
+    p3d:"البحث عن الأنماط المعروفة في الذاكرة", p3c:"أزرق",
+    p4d:"التحقق من السياق حول كل نمط لضمان الدقة", p4c:"بنفسجي",
+    p5d:"تطبيق قواعد الضبط وتنفيذ التعديلات", p5c:"بنفسجي",
+    p6d:"حساب وتحديث قيمة Checksum للملف المعدّل", p6c:"أصفر",
+    p7d:"حفظ التغييرات في قاعدة التعلم لتوليد سكريبتات مستقبلاً", p7c:"أخضر",
+    pOrange:"برتقالي متحرك", pOrangeD:"المرحلة تعمل الآن",
+    pGreen:"✔ أخضر", pGreenD:"اكتملت المرحلة بنجاح",
+    pRed:"✘ أحمر", pRedD:"حدث خطأ في هذه المرحلة",
+    tab01:"التبويب 01", analysisTitle:"تبويب التحليل",
+    analysisSub:"أول وأهم تبويب. يُجري التحليل الكامل عبر 7 مراحل ويعرض نتائج مجزأة شاملة",
+    analysisOrder:"ترتيب العمل:", analysisOrderD:"اختر الملف ← اختر Stage ← انقر ▶ Analyze ← راجع النتائج في هذا التبويب",
+    aCard1T:"تحديد الملف", aCard1D:"استخدم زر Browse أو اسحب ملف BIN مباشرة إلى المنطقة المخصصة. يقبل ملفات .bin فقط.",
+    aCard2T:"اختيار المرحلة", aCard2D:"من قائمة Stage اختر مستوى الضبط التلقائي (1/2/3) قبل الضغط على Analyze.",
+    aCodeTitle:"مثال على نتائج التحليل",
+    tab02:"التبويب 02", fuelTitle:"خرائط الوقود",
+    fuelSub:"استخراج وعرض وتصدير جدول الوقود بتصوير ملوّن يسهّل القراءة",
+    fCard1T:"حقل Offset", fCard1D:"عنوان الذاكرة الذي تبدأ منه خريطة الوقود. يُكتشف تلقائياً عند معرفة نوع ECU.",
+    fCard2T:"Rows × Cols", fCard2D:"أبعاد الجدول. القيمة الشائعة 16×16 (256 خلية). يمكن تغييرها من 4 إلى 32.",
+    fCard3T:"أنواع البيانات", fCard3D:"uint16_le الأشيع — عدد 16 بت Little-Endian. استخدم uint8 للوحدات القديمة.",
+    fTip:"Before/After:", fTipD:"انقر هذا الزر بعد تطبيق Stage Tune لمقارنة الجدول قبل وبعد — يعرض عدد الخلايا المتغيرة ومتوسط الفرق ونسبة التغيير الإجمالية",
+    tab03:"التبويب 03", boostTitle:"خريطة الضغط",
+    boostSub:"عرض وتحرير خريطة ضغط التوربو مباشرة — مع حماية من تجاوز الحدود الآمنة",
+    bCard1T:"تحذيرات آنية", bCard1D:"عند تحرير أي خلية وتجاوز القيمة للحد الآمن 2.8 بار، تظهر رسالة تحذير فورية.",
+    bCard2T:"Apply to BIN", bCard2D:"يطبق التعديلات مباشرة على ملف BIN ويحفظ نسخة معدّلة في مجلد output باسم يتضمن التاريخ والوقت.",
+    bWarn:"تحذير مهم:", bWarnD:"تعديل خريطة الضغط بدون ترقية صلبة مناسبة (إنتركولر، خراطيم، مضخة وقود) قد يتسبب بأعطال خطيرة. الحد الأقصى الآمن للضغط هو 2.8 بار.",
+    tab04:"التبويب 04", tuneTitle:"DPF / EGR / IMMO / Tune",
+    tuneSub:"التبويب الأكثر استخداماً — يجمع حذف المرشحات وتعطيل الإيموبلايزر والضبط التلقائي",
+    tCard1T:"DPF Delete", tCard1D:"حذف نظام مرشح الجسيمات. يُعطّل أوامر التجديد الدوري ويزيل الحماية من انسداد الفلتر. مخصص للمركبات المستخدمة في السباقات.",
+    tCard2T:"EGR Delete", tCard2D:"تعطيل نظام إعادة تدوير العادم. يُحسّن نقاء الهواء الداخل للمحرك ويزيد من استجابة الإضرام وكفاءة الاحتراق.",
+    tCard3T:"IMMO Off", tCard3D:"تعطيل نظام منع السرقة الإلكتروني. ضروري عند تبديل وحدة ECU أو المفتاح أو لوحة الجسم BCM.",
+    stageLevels:"مستويات الضبط التلقائي",
+    s1T:"ضبط خفيف", s1f1:"زيادة خريطة الوقود +10%", s1f2:"تخفيض EGR إلى 20%", s1f3:"زيادة ضغط التوربو +5%", s1f4:"آمن للاستخدام اليومي", s1f5:"لا يحتاج ترقيات هاردوير", s1w:"✔ مناسب للسيارات الاجتماعية",
+    s2T:"ضبط متوسط", s2f1:"زيادة خريطة الوقود +20%", s2f2:"زيادة ضغط السكة +15%", s2f3:"زيادة ضغط التوربو +12%", s2f4:"زيادة حد عزم الدوران +10%", s2f5:"تعطيل EGR كلياً", s2w:"⚠ يحتاج فحص على الدايناميتر",
+    s3T:"أقصى طاقة", s3f1:"زيادة خريطة الوقود +30%", s3f2:"إزالة حد عزم الدوران كلياً", s3f3:"ضغط التوربو +20%", s3f4:"ضغط سكة الوقود +25%", s3f5:"تعطيل DPF + EGR", s3w:"🔴 يتطلب ترقيات هاردوير كاملة",
+    preCheck:"الفحص المسبق للميزات:", preCheckD:"قبل تطبيق أي تعديل، يفحص البرنامج تلقائياً وجود DPF/EGR/IMMO في الملف ويعرض تحذيراً إذا لم تُكتشف.",
+    tab05:"التبويب 05", patchTitle:"مدير التصحيحات",
+    patchSub:"إضافة وإدارة وتطبيق تصحيحات مخصصة مباشرة على ملفات BIN",
+    pField:"الحقل", pDesc:"الوصف", pEx:"مثال",
+    patch1:"معرّف فريد للتصحيح", patch2:"وصف ما يفعله", patch3:"عنوان في الذاكرة", patch4:"البايتات الأصلية (hex)", patch5:"البايتات الجديدة (hex)", patch6:"معرّف وحدة التحكم",
+    patchApply:"التطبيق:", patchApplyD:"ضع علامة ✓ على التصحيحات المطلوبة ← انقر Apply Selected Patches ← يُحفظ الملف الجديد تلقائياً بنفس اسم الأصل مع إضافة _patched",
+    tab06:"التبويب 06", obdTitle:"OBD / CAN",
+    obdSub:"تحليل سجلات ELM327 وبيانات CAN Bus مع فك تشفير تلقائي لقيم PIDs وأكواد DTC",
+    obdSample:"مثال على سجل OBD-II:", obdResult:"النتائج بعد Parse:", obdVal:"القيمة", obdUnit:"الوحدة",
+    tab07:"التبويب 07", popsTitle:"Pops & Bangs",
+    popsSub:"إضافة تأثير الفرقعة والطقطقة في العادم بثلاثة مستويات",
+    pop1T:"Mild — خفيف", pop1D:"طقطقة خفيفة عند رفع القدم. آمن للاستخدام اليومي والسيارات الاجتماعية.",
+    pop2T:"Aggressive — قوي", pop2D:"انفجارات قوية أثناء التباطؤ. مسموع بوضوح ومناسب للمضمار.",
+    pop3T:"Full Crackle — أقصى", pop3D:"أقصى تأثير. فرقعة مستمرة وصاخبة. للسيارات المخصصة للمضمار فقط.",
+    tab08:"التبويب 08", diffTitle:"مقارنة BIN",
+    diffSub:"قارن ملفين BIN وإيجاد كل الاختلافات — مع إمكانية تعليم الفروق تلقائياً",
+    diffResult:"مثال نتيجة المقارنة",
+    learnDiff:"Learn This Diff:", learnDiffD:"بعد المقارنة انقر هذا الزر مع تحديد نوع ECU والعملية (مثل DPF_DELETE). يُحفظ الفرق في قاعدة التعلم ليُستخدم لاحقاً في توليد سكريبتات تلقائية.",
+    tab09:"التبويب 09", hexTitle:"عرض Hex",
+    hexSub:"تصفح محتوى ملف BIN بصيغة الهيكساديسيمال مع التمثيل النصي",
+    tab10:"التبويب 10", jobTitle:"سجل الأعمال",
+    jobSub:"سجّل كل عمل ضبط أجريته للرجوع إليه لاحقاً وإصدار تقارير للعملاء",
+    jobCard1T:"إضافة سجل جديد", jobCard1D:"اكتب بيانات المركبة: الماركة، الموديل، السنة، VIN، نوع ECU، العمليات المنجزة، والملاحظات. ثم انقر Add Job.",
+    jobCard2T:"البحث والتصدير", jobCard2D:"ابحث بأي كلمة في سجلاتك. ألوان الحالة: أخضر = مكتمل | برتقالي = جاري | أحمر = ملغى. صدّر الكل كـ CSV.",
+    tab11:"التبويب 11", crmTitle:"إدارة العملاء (CRM)",
+    crmSub:"قاعدة بيانات منظّمة لعملائك مع إمكانية البحث السريع",
+    crmTip:"التعديل السريع:", crmTipD:"انقر على أي صف في الجدول ← تتعبّأ البيانات تلقائياً في النموذج ← عدّل ما تريد ← انقر Update Selected",
+    tab12:"التبويب 12 — متقدم", scriptsTitle:"محرك السكريبتات",
+    scriptsSub:"أداة الضبط الأكثر دقة وأماناً — يبحث عن أنماط محددة ويتحقق من السياق قبل أي تعديل",
+    scriptAdv:"ما يميز Script Engine:", scriptAdvD:"بدلاً من الكتابة في عنوان ثابت، يبحث عن نمط بايتات ثم يتحقق من البايتات المحيطة (context) قبل التعديل.",
+    scriptStructure:"بنية ملف JSON للسكريبت",
+    tab13:"التبويب 13 — جديد v5", featTitle:"كشف الميزات",
+    featSub:"فحص تلقائي لوجود DPF/EGR/SCR/IMMO/DTC/Boost قبل أي تعديل",
+    fdpf:"مرشح الجسيمات الديزلية", fegr:"إعادة تدوير العادم", fscr:"AdBlue / DEF / Urea",
+    fimmo:"نظام منع السرقة", fdtc:"رموز الأعطال النشطة", fboost:"خريطة ضغط التوربو",
+    genScript:"Generate Script from Features:", genScriptD:"بعد الكشف، انقر هذا الزر ليقوم البرنامج تلقائياً بتوليد سكريبت JSON للميزات المكتشفة — يستخدم بيانات Diff Learning إن وُجدت",
+    tab14:"التبويب 14 — جديد v5", learnTitle:"تعلم الفروق (Diff Learning)",
+    learnSub:"كل تعديل تجريه يُحفظ تلقائياً — بمرور الوقت يتعلم البرنامج ويولّد سكريبتات بنفسه",
+    lCard1T:"Total Diffs", lCard1D:"إجمالي الفروق المحفوظة في قاعدة البيانات من جميع العمليات",
+    lCard2T:"Confirmed", lCard2D:"الفروق المؤكدة (شوهدت مرة واحدة أو أكثر). هذه فقط تُستخدم لتوليد السكريبتات",
+    lCard3T:"Scripts Generated", lCard3D:"عدد السكريبتات التي وُلّدت تلقائياً من الفروق المتراكمة",
+    howLearn:"كيف يعمل التعلم التلقائي؟",
+    wf1T:"تطبيق تعديل", wf1D:"DPF Delete أو Stage Tune أو أي عملية",
+    wf2T:"حفظ تلقائي", wf2D:"يُسجّل البرنامج الفرق والسياق والعنوان",
+    wf3T:"تراكم البيانات", wf3D:"بتكرار نفس العملية تزداد الثقة",
+    wf4T:"توليد سكريبت", wf4D:"انقر Generate → ملف JSON جاهز للاستخدام",
+    tab15:"التبويب 15", hexConvTitle:"تحويل HEX",
+    hexConvSub:"تحويل الملفات بين BIN وصيغ S-Record وIntel HEX",
+    hcConv:"التحويل", hcDesc:"الوصف", hcUse:"الاستخدام",
+    hc1:"ملف Motorola .srec", hc1u:"توافق مع أدوات Motorola/Freescale",
+    hc2:"ملف .hex", hc2u:"برمجة المتحكمات والـ Bootloader",
+    hc3:"تحويل عكسي", hc3u:"استخدام ملفات srec كمدخل",
+    hc4:"تحويل عكسي", hc4u:"تحويل ملفات hex للضبط",
+    tagPractice:"الممارسة", wfTitle:"سير العمل الموصى به",
+    wfSub:"اتبع هذه الخطوات لأفضل نتائج",
+    beginner:"للمبتدئين", pro:"للمحترفين",
+    bStep1:"افتح البرنامج ← فعّل الترخيص", bStep2:"اسحب ملف BIN للمنطقة المخصصة",
+    bStep3:"اختر Stage 1", bStep4:"انقر ▶ Analyze & Auto-Tune",
+    bStep5:"راجع نتائج تبويب Analysis", bStep6:"ابحث عن الملف في مجلد output/",
+    pStep1:"حلّل الملف الأصلي (Analysis)", pStep2:"افحص Feature Detection",
+    pStep3:"اذهب لـ Script Engine", pStep4:"اختر أو أنشئ سكريبتاً",
+    pStep5:"استخدم Auto-Match & Run", pStep6:"قارن النتيجة في BIN Diff",
+    pStep7:"انقر Learn This Diff",
+    importantRules:"قواعد مهمة قبل أي تعديل",
+    backup:"النسخ الاحتياطي:", backupD:"البرنامج يحفظ نسخة احتياطية تلقائياً في مجلد output/backups/ قبل كل تعديل.",
+    stage3warn:"Stage 3 فقط بترقيات:", stage3warnD:"لا تطبّق Stage 3 على سيارة عادية. يتطلب بخاخات مُحسّنة، مضخة وقود، وإنتركولر أكبر.",
+    tagStructure:"البنية", foldersTitle:"مجلدات البرنامج",
+    foldersSub:"كل ما يحفظه البرنامج وأين يجده",
+    fdb1:"← قاعدة البيانات الرئيسية", fdb2:"← بيانات الترخيص المُفعَّل",
+    fdb3:"← قاعدة تعلم الفروق", fdb4:"← الإعدادات (ثيم، لغة)",
+    fscripts:"← مجلد سكريبتات JSON", fout1:"← ملفات BIN المعدّلة",
+    fout2:"← تقارير HTML", fout3:"← نسخ احتياطية تلقائية",
+    tagSupport:"الدعم", contactTitle:"الدعم الفني",
+    contactSub:"للمساعدة في الترخيص أو أي استفسار تقني، تواصل مباشرة",
+    contactName:"الدعم الفني", contactRole:"متخصص معايرة وحدات التحكم الإلكترونية ECU",
+    available:"متاح 24 / 7", whatsapp:"واتساب مباشر", copyNum:"نسخ الرقم", callBtn:"اتصال",
+    phoneLabel:"رقم الهاتف / واتساب",
+    contactTip:"عند التواصل، يُرجى إرسال: معرّف الجهاز (HWID) + نوع ECU + وصف المشكلة. يمكنك إرفاق ملف BIN إذا لزم."
+  },
+  en: {
+    userGuide:"User Guide", navStart:"Getting Started", navOverview:"Overview",
+    navSplash:"Splash Screen", navLicense:"License", navHeader:"Main Toolbar",
+    navPipeline:"Pipeline", navTabs:"Tabs", navAnalysis:"Analysis",
+    navFuel:"Fuel Maps", navBoost:"Boost Map", navTune:"DPF / EGR / Tune",
+    navPatch:"Patch Manager", navOBD:"OBD / CAN", navPops:"Pops & Bangs",
+    navDiff:"BIN Compare", navHex:"Hex View", navJob:"Job Log",
+    navCRM:"Customers", navScripts:"Script Engine", navFeatures:"Feature Detect",
+    navLearn:"Diff Learning", navHexConv:"HEX Convert", navOther:"Other",
+    navWorkflow:"Workflow", navFolders:"Folders", navContact:"Support",
+    heroGuide:"Complete User Manual",
+    heroTitle1:"Everything You Need", heroTitle2:"to Tune ECUs",
+    heroDesc:"A detailed, easy-to-understand guide for all software features, from BIN file analysis to automatic script generation via the Diff Learning engine.",
+    statECU:"ECU units supported", statStages:"Analysis stages", statTabs:"Specialized tabs", statSupport:"Technical support",
+    tagStart:"Getting Started", splashTitle:"Splash Screen",
+    splashSub:"Appears automatically when the program starts and shows loading stages",
+    splashCard1T:"Spinning Animation", splashCard1D:"A rotating ⚙ icon with two interlocking rings — indicates the program is working and initializing components correctly",
+    splashCard2T:"7-Stage Progress Bar", splashCard2D:"Fills progressively to reflect loading progress across 7 stages: Database → Libraries → Feature Detector → Learning Engine → License → Tune Rules → Ready",
+    splashCard3T:"Pipeline Boxes", splashCard3D:"7 boxes light up in sequence: SW ID ← Feature ← Pattern ← Context ← Rules ← Checksum ← Diff Learn",
+    splashCard4T:"Auto Transition", splashCard4D:"After loading completes, the screen fades out smoothly and transitions directly to the license activation window",
+    tagLicense:"License", licTitle:"License Activation",
+    licSub:"First window shown before entering the program. No internet required — license is verified locally",
+    licCard1T:"Device ID (HWID)", licCard1D:"An encrypted code unique to your device. Copy it and send to Engineer Fares to receive a license key specific to your device.",
+    licCard2T:"Paste Key", licCard2D:"Paste the key in the text field, or click Paste from Clipboard to paste directly from the clipboard.",
+    licCard3T:"Instant Activation", licCard3D:"After successful activation, the license is saved locally and you won't need to re-enter it. Bound to your device only.",
+    licSteps:"Steps to get your license:", licStepsDesc:"Copy the HWID shown in the window ← Send it via WhatsApp +970595438486 ← Receive your key ← Paste it and click Activate",
+    tagUI:"Interface", headerTitle:"Main Toolbar",
+    headerSub:"Always visible at the top of the window and controls general settings",
+    hCard1T:"Theme Toggle", hCard1D:"Dark ⇄ Light — changes instantly and saves automatically",
+    hCard2T:"Language", hCard2D:"EN / AR / FR / DE / TR — instant interface switch",
+    hCard3T:"License Status", hCard3D:"● Green = Licensed | ● Red = No License",
+    hCard4T:"Change Key", hCard4D:"Change the license key on renewal or device change",
+    tagProcess:"Processing", pipeTitle:"7-Stage Pipeline",
+    pipeSub:"Every analysis passes through these stages in sequence — trackable live in the Pipeline bar",
+    tNum:"#", tName:"Stage Name", tDesc:"What it does", tColor:"Color indicator",
+    p1d:"Extract software ID from BIN file", p1c:"Orange",
+    p2d:"Detect DPF / EGR / SCR / IMMO / DTC presence", p2c:"Blue",
+    p3d:"Search for known patterns in memory", p3c:"Blue",
+    p4d:"Validate context around each pattern for accuracy", p4c:"Purple",
+    p5d:"Apply tune rules and execute modifications", p5c:"Purple",
+    p6d:"Calculate and update checksum of modified file", p6c:"Yellow",
+    p7d:"Save changes to learning database for future script generation", p7c:"Green",
+    pOrange:"Animated orange", pOrangeD:"Stage is currently running",
+    pGreen:"✔ Green", pGreenD:"Stage completed successfully",
+    pRed:"✘ Red", pRedD:"An error occurred in this stage",
+    tab01:"Tab 01", analysisTitle:"Analysis Tab",
+    analysisSub:"First and most important tab. Runs a full 7-stage analysis and displays comprehensive results",
+    analysisOrder:"Workflow:", analysisOrderD:"Select file ← Choose Stage ← Click ▶ Analyze ← Review results in this tab",
+    aCard1T:"Select File", aCard1D:"Use the Browse button or drag a BIN file directly to the designated area. Accepts .bin files only.",
+    aCard2T:"Choose Stage", aCard2D:"From the Stage dropdown, choose the auto-tune level (1/2/3) before clicking Analyze.",
+    aCodeTitle:"Analysis results example",
+    tab02:"Tab 02", fuelTitle:"Fuel Maps",
+    fuelSub:"Extract, view and export fuel table with color-coded visualization for easy reading",
+    fCard1T:"Offset Field", fCard1D:"Memory address where the fuel map starts. Auto-detected when ECU type is known. Example: 0x8000",
+    fCard2T:"Rows × Cols", fCard2D:"Table dimensions. Common value is 16×16 (256 cells). Can be changed from 4 to 32.",
+    fCard3T:"Data Types", fCard3D:"uint16_le is most common — 16-bit Little-Endian integer. Use uint8 for older units.",
+    fTip:"Before/After:", fTipD:"Click this button after applying Stage Tune to compare the table before and after — shows changed cells count, average difference and total change percentage",
+    tab03:"Tab 03", boostTitle:"Boost Map",
+    boostSub:"View and edit turbo boost pressure map directly — with protection against exceeding safe limits",
+    bCard1T:"Live Warnings", bCard1D:"When editing any cell and the value exceeds the safe limit of 2.8 bar, an immediate warning appears.",
+    bCard2T:"Apply to BIN", bCard2D:"Applies modifications directly to the BIN file and saves a modified copy in the output folder with a date-stamped name.",
+    bWarn:"Important Warning:", bWarnD:"Modifying the boost map without proper hardware upgrades (intercooler, hoses, fuel pump) can cause serious damage. Maximum safe boost is 2.8 bar.",
+    tab04:"Tab 04", tuneTitle:"DPF / EGR / IMMO / Tune",
+    tuneSub:"Most-used tab — combines filter deletion, immobilizer disable, and auto-tuning",
+    tCard1T:"DPF Delete", tCard1D:"Removes the diesel particulate filter system. Disables regeneration cycles and filter blockage protection. For race/track vehicles only.",
+    tCard2T:"EGR Delete", tCard2D:"Disables the exhaust gas recirculation system. Improves intake air purity and increases combustion efficiency.",
+    tCard3T:"IMMO Off", tCard3D:"Disables the electronic immobilizer. Required when swapping ECU, ignition key, or BCM body control module.",
+    stageLevels:"Auto-Tune Levels",
+    s1T:"Light Tune", s1f1:"Fuel map +10%", s1f2:"EGR reduced to 20%", s1f3:"Boost pressure +5%", s1f4:"Safe for daily driving", s1f5:"No hardware upgrades needed", s1w:"✔ Suitable for street cars",
+    s2T:"Medium Tune", s2f1:"Fuel map +20%", s2f2:"Rail pressure +15%", s2f3:"Boost pressure +12%", s2f4:"Torque limit +10%", s2f5:"EGR fully disabled", s2w:"⚠ Requires dyno verification",
+    s3T:"Full Power", s3f1:"Fuel map +30%", s3f2:"Torque limit removed", s3f3:"Boost pressure +20%", s3f4:"Rail pressure +25%", s3f5:"DPF + EGR disabled", s3w:"🔴 Requires full hardware upgrades",
+    preCheck:"Pre-modification check:", preCheckD:"Before applying any modification, the software automatically checks for DPF/EGR/IMMO presence and shows a warning if not detected.",
+    tab05:"Tab 05", patchTitle:"Patch Manager",
+    patchSub:"Add, manage and apply custom patches directly to BIN files",
+    pField:"Field", pDesc:"Description", pEx:"Example",
+    patch1:"Unique patch identifier", patch2:"Describes what it does", patch3:"Memory address", patch4:"Original bytes (hex)", patch5:"New bytes (hex)", patch6:"ECU unit identifier",
+    patchApply:"Apply:", patchApplyD:"Check ✓ on desired patches ← Click Apply Selected Patches ← New file saved automatically with _patched suffix",
+    tab06:"Tab 06", obdTitle:"OBD / CAN",
+    obdSub:"Analyze ELM327 logs and CAN Bus data with automatic decoding of PID values and DTC codes",
+    obdSample:"OBD-II log example:", obdResult:"Parsed results:", obdVal:"Value", obdUnit:"Unit",
+    tab07:"Tab 07", popsTitle:"Pops & Bangs",
+    popsSub:"Add exhaust popping and crackling effects at three intensity levels",
+    pop1T:"Mild", pop1D:"Light crackle on lift-off. Safe for daily driving and street cars.",
+    pop2T:"Aggressive", pop2D:"Strong pops during deceleration. Clearly audible and suitable for track use.",
+    pop3T:"Full Crackle", pop3D:"Maximum effect. Continuous loud popping. For dedicated track cars only.",
+    tab08:"Tab 08", diffTitle:"BIN Compare",
+    diffSub:"Compare two BIN files and find all differences — with auto-learning capability",
+    diffResult:"Comparison result example",
+    learnDiff:"Learn This Diff:", learnDiffD:"After comparing, click this button while specifying the ECU type and operation (e.g. DPF_DELETE). The diff is saved to the learning database for future automatic script generation.",
+    tab09:"Tab 09", hexTitle:"Hex View",
+    hexSub:"Browse BIN file content in hexadecimal format with text representation",
+    tab10:"Tab 10", jobTitle:"Job Log",
+    jobSub:"Record every tune job you perform for future reference and client reports",
+    jobCard1T:"Add New Record", jobCard1D:"Enter vehicle data: make, model, year, VIN, ECU type, completed operations, and notes. Then click Add Job.",
+    jobCard2T:"Search & Export", jobCard2D:"Search by any word in your records. Status colors: Green = completed | Orange = in progress | Red = cancelled. Export all as CSV.",
+    tab11:"Tab 11", crmTitle:"Customer Management (CRM)",
+    crmSub:"Organized customer database with quick search capability",
+    crmTip:"Quick Edit:", crmTipD:"Click any row in the table ← Data auto-fills into the form ← Edit as needed ← Click Update Selected",
+    tab12:"Tab 12 — Advanced", scriptsTitle:"Script Engine",
+    scriptsSub:"The most precise and safe tuning tool — searches for specific patterns and validates context before any modification",
+    scriptAdv:"What sets Script Engine apart:", scriptAdvD:"Instead of writing to a fixed address, it searches for a byte pattern then validates surrounding bytes (context) before modifying — making it safe across different ECU files of the same type",
+    scriptStructure:"JSON Script File Structure",
+    tab13:"Tab 13 — New v5", featTitle:"Feature Detection",
+    featSub:"Automatic check for DPF/EGR/SCR/IMMO/DTC/Boost presence before any modification",
+    fdpf:"Diesel Particulate Filter", fegr:"Exhaust Gas Recirculation", fscr:"AdBlue / DEF / Urea",
+    fimmo:"Immobilizer System", fdtc:"Active Fault Codes", fboost:"Turbo Boost Map",
+    genScript:"Generate Script from Features:", genScriptD:"After detection, click this button to automatically generate a JSON script for detected features — uses Diff Learning data if available",
+    tab14:"Tab 14 — New v5", learnTitle:"Diff Learning",
+    learnSub:"Every modification you make is saved automatically — over time the software learns and generates scripts on its own",
+    lCard1T:"Total Diffs", lCard1D:"Total differences saved in the database from all operations",
+    lCard2T:"Confirmed", lCard2D:"Confirmed diffs (seen once or more). Only these are used for script generation",
+    lCard3T:"Scripts Generated", lCard3D:"Number of scripts automatically generated from accumulated diffs",
+    howLearn:"How does auto-learning work?",
+    wf1T:"Apply Modification", wf1D:"DPF Delete, Stage Tune, or any operation",
+    wf2T:"Auto Save", wf2D:"Software records the diff, context, and address",
+    wf3T:"Data Accumulation", wf3D:"Repeating the same operation increases confidence",
+    wf4T:"Generate Script", wf4D:"Click Generate → Ready-to-use JSON file",
+    tab15:"Tab 15", hexConvTitle:"HEX Convert",
+    hexConvSub:"Convert files between BIN and S-Record / Intel HEX formats",
+    hcConv:"Conversion", hcDesc:"Description", hcUse:"Usage",
+    hc1:"Motorola .srec file", hc1u:"Compatibility with Motorola/Freescale tools",
+    hc2:".hex file", hc2u:"Programming microcontrollers and Bootloader",
+    hc3:"Reverse conversion", hc3u:"Use srec files as input",
+    hc4:"Reverse conversion", hc4u:"Convert hex files for tuning",
+    tagPractice:"Practice", wfTitle:"Recommended Workflow",
+    wfSub:"Follow these steps for best results",
+    beginner:"For Beginners", pro:"For Professionals",
+    bStep1:"Open program ← Activate license", bStep2:"Drag BIN file to designated area",
+    bStep3:"Choose Stage 1", bStep4:"Click ▶ Analyze & Auto-Tune",
+    bStep5:"Review results in Analysis tab", bStep6:"Find file in output/ folder",
+    pStep1:"Analyze original file (Analysis)", pStep2:"Check Feature Detection",
+    pStep3:"Go to Script Engine", pStep4:"Select or create a script",
+    pStep5:"Use Auto-Match & Run", pStep6:"Compare result in BIN Diff",
+    pStep7:"Click Learn This Diff",
+    importantRules:"Important Rules Before Any Modification",
+    backup:"Backup:", backupD:"The software automatically saves a backup in the output/backups/ folder before every modification.",
+    stage3warn:"Stage 3 requires upgrades:", stage3warnD:"Don't apply Stage 3 to a standard vehicle. Requires upgraded injectors, fuel pump, and a larger intercooler.",
+    tagStructure:"Structure", foldersTitle:"Program Folders",
+    foldersSub:"Everything the program saves and where to find it",
+    fdb1:"← Main database", fdb2:"← Activated license data",
+    fdb3:"← Diff learning database", fdb4:"← Settings (theme, language)",
+    fscripts:"← JSON scripts folder", fout1:"← Modified BIN files",
+    fout2:"← HTML reports", fout3:"← Automatic backups",
+    tagSupport:"Support", contactTitle:"Technical Support",
+    contactSub:"For help with licensing or any technical inquiry, contact directly",
+    contactName:"Fares Mansour", contactRole:"ECU Calibration Specialist",
+    available:"Available 24/7", whatsapp:"WhatsApp", copyNum:"Copy Number", callBtn:"Call",
+    phoneLabel:"Phone / WhatsApp",
+    contactTip:"When contacting, please send: Device ID (HWID) + ECU type + problem description. You can attach a BIN file if needed."
+  },
+  fr: {
+    userGuide:"Guide Utilisateur", navStart:"Démarrage", navOverview:"Aperçu",
+    navSplash:"Écran de démarrage", navLicense:"Licence", navHeader:"Barre principale",
+    navPipeline:"Pipeline", navTabs:"Onglets", navAnalysis:"Analyse",
+    navFuel:"Cartes carburant", navBoost:"Carte de pression", navTune:"DPF / EGR / Tune",
+    navPatch:"Gestionnaire de patches", navOBD:"OBD / CAN", navPops:"Pops & Bangs",
+    navDiff:"Comparer BIN", navHex:"Vue Hex", navJob:"Journal des travaux",
+    navCRM:"Clients", navScripts:"Moteur de scripts", navFeatures:"Détection",
+    navLearn:"Apprentissage", navHexConv:"Conversion HEX", navOther:"Autres",
+    navWorkflow:"Flux de travail", navFolders:"Dossiers", navContact:"Support",
+    heroGuide:"Manuel Utilisateur Complet",
+    heroTitle1:"Tout ce dont vous avez besoin", heroTitle2:"pour calibrer les ECU",
+    heroDesc:"Un guide détaillé et facile à comprendre pour toutes les fonctionnalités, de l'analyse des fichiers BIN jusqu'à la génération automatique de scripts via le moteur d'apprentissage.",
+    statECU:"ECU supportées", statStages:"Étapes d'analyse", statTabs:"Onglets spécialisés", statSupport:"Support technique",
+    tagStart:"Démarrage", splashTitle:"Écran de démarrage",
+    splashSub:"S'affiche automatiquement au lancement et montre les étapes de chargement",
+    splashCard1T:"Animation de rotation", splashCard1D:"Icône ⚙ rotative avec deux anneaux — indique que le programme fonctionne et initialise correctement",
+    splashCard2T:"Barre de progression à 7 étapes", splashCard2D:"Se remplit progressivement pour refléter l'avancement du chargement sur 7 étapes",
+    splashCard3T:"Boîtes Pipeline", splashCard3D:"7 boîtes s'allument en séquence : SW ID ← Feature ← Pattern ← Context ← Rules ← Checksum ← Diff Learn",
+    splashCard4T:"Transition automatique", splashCard4D:"Après le chargement, l'écran disparaît en fondu et passe à la fenêtre d'activation de licence",
+    tagLicense:"Licence", licTitle:"Activation de la licence",
+    licSub:"Première fenêtre avant d'entrer dans le programme. Pas d'internet requis — licence vérifiée localement",
+    licCard1T:"ID de l'appareil (HWID)", licCard1D:"Code chiffré unique à votre appareil. Copiez-le et envoyez-le à l'ingénieur Fares.",
+    licCard2T:"Coller la clé", licCard2D:"Collez la clé dans le champ de texte, ou cliquez Paste from Clipboard.",
+    licCard3T:"Activation instantanée", licCard3D:"Après activation réussie, la licence est sauvegardée localement. Liée à votre appareil uniquement.",
+    licSteps:"Étapes pour obtenir votre licence:", licStepsDesc:"Copiez le HWID ← Envoyez-le par WhatsApp +970595438486 ← Recevez votre clé ← Collez-la et cliquez Activate",
+    tagUI:"Interface", headerTitle:"Barre principale",
+    headerSub:"Toujours visible en haut de la fenêtre",
+    hCard1T:"Basculer le thème", hCard1D:"Dark ⇄ Light — change instantanément",
+    hCard2T:"Langue", hCard2D:"EN / AR / FR / DE / TR — changement instantané",
+    hCard3T:"Statut de licence", hCard3D:"● Vert = Licencié | ● Rouge = Pas de licence",
+    hCard4T:"Changer la clé", hCard4D:"Changer la clé lors du renouvellement",
+    tagProcess:"Traitement", pipeTitle:"Pipeline à 7 étapes",
+    pipeSub:"Chaque analyse passe par ces étapes en séquence",
+    tNum:"N°", tName:"Étape", tDesc:"Ce qu'elle fait", tColor:"Couleur",
+    p1d:"Extraire l'ID logiciel du fichier BIN", p1c:"Orange",
+    p2d:"Détecter DPF / EGR / SCR / IMMO / DTC", p2c:"Bleu",
+    p3d:"Rechercher des patterns connus en mémoire", p3c:"Bleu",
+    p4d:"Valider le contexte autour de chaque pattern", p4c:"Violet",
+    p5d:"Appliquer les règles et exécuter les modifications", p5c:"Violet",
+    p6d:"Calculer et mettre à jour le checksum", p6c:"Jaune",
+    p7d:"Sauvegarder les changements dans la base d'apprentissage", p7c:"Vert",
+    pOrange:"Orange animé", pOrangeD:"Étape en cours",
+    pGreen:"✔ Vert", pGreenD:"Étape complétée avec succès",
+    pRed:"✘ Rouge", pRedD:"Une erreur s'est produite",
+    tab01:"Onglet 01", analysisTitle:"Onglet Analyse",
+    analysisSub:"Premier et plus important onglet. Effectue une analyse complète en 7 étapes",
+    analysisOrder:"Ordre de travail:", analysisOrderD:"Sélectionner le fichier ← Choisir le Stage ← Cliquer ▶ Analyze ← Examiner les résultats",
+    aCard1T:"Sélectionner le fichier", aCard1D:"Utilisez le bouton Browse ou glissez un fichier BIN. Accepte les fichiers .bin uniquement.",
+    aCard2T:"Choisir le stage", aCard2D:"Dans le menu Stage, choisissez le niveau de tune (1/2/3) avant d'analyser.",
+    aCodeTitle:"Exemple de résultats d'analyse",
+    tab02:"Onglet 02", fuelTitle:"Cartes carburant",
+    fuelSub:"Extraire, afficher et exporter le tableau carburant avec visualisation colorée",
+    fCard1T:"Champ Offset", fCard1D:"Adresse mémoire de début de la carte carburant. Exemple : 0x8000",
+    fCard2T:"Lignes × Colonnes", fCard2D:"Dimensions du tableau. Valeur courante 16×16. Modifiable de 4 à 32.",
+    fCard3T:"Types de données", fCard3D:"uint16_le le plus courant — entier 16 bits Little-Endian.",
+    fTip:"Avant/Après:", fTipD:"Cliquez ce bouton après Stage Tune pour comparer le tableau avant et après",
+    tab03:"Onglet 03", boostTitle:"Carte de pression",
+    boostSub:"Afficher et éditer la carte de pression turbo — avec protection contre les dépassements",
+    bCard1T:"Avertissements en direct", bCard1D:"Si une valeur dépasse 2.8 bar, un avertissement immédiat apparaît.",
+    bCard2T:"Appliquer au BIN", bCard2D:"Applique les modifications au BIN et sauvegarde dans le dossier output.",
+    bWarn:"Avertissement important:", bWarnD:"Modifier la carte de pression sans mises à niveau matérielles peut causer des dommages graves. Limite sûre : 2.8 bar.",
+    tab04:"Onglet 04", tuneTitle:"DPF / EGR / IMMO / Tune",
+    tuneSub:"Onglet le plus utilisé — combine suppression des filtres, désactivation immobiliseur et tune auto",
+    tCard1T:"DPF Delete", tCard1D:"Supprime le filtre à particules diesel. Désactive les cycles de régénération.",
+    tCard2T:"EGR Delete", tCard2D:"Désactive le système de recirculation des gaz d'échappement.",
+    tCard3T:"IMMO Off", tCard3D:"Désactive l'antidémarrage électronique. Nécessaire lors du remplacement d'ECU.",
+    stageLevels:"Niveaux de tune automatique",
+    s1T:"Tune léger", s1f1:"Carte carburant +10%", s1f2:"EGR réduit à 20%", s1f3:"Pression turbo +5%", s1f4:"Sûr pour usage quotidien", s1f5:"Pas de mise à niveau matérielle", s1w:"✔ Adapté aux voitures de route",
+    s2T:"Tune moyen", s2f1:"Carte carburant +20%", s2f2:"Pression rampe +15%", s2f3:"Pression turbo +12%", s2f4:"Limite couple +10%", s2f5:"EGR entièrement désactivé", s2w:"⚠ Nécessite vérification dyno",
+    s3T:"Puissance maximale", s3f1:"Carte carburant +30%", s3f2:"Limite couple supprimée", s3f3:"Pression turbo +20%", s3f4:"Pression rampe +25%", s3f5:"DPF + EGR désactivés", s3w:"🔴 Nécessite mises à niveau complètes",
+    preCheck:"Vérification préalable:", preCheckD:"Avant toute modification, le logiciel vérifie automatiquement la présence de DPF/EGR/IMMO.",
+    tab05:"Onglet 05", patchTitle:"Gestionnaire de patches",
+    patchSub:"Ajouter, gérer et appliquer des patches personnalisés directement aux fichiers BIN",
+    pField:"Champ", pDesc:"Description", pEx:"Exemple",
+    patch1:"Identifiant unique du patch", patch2:"Description de ce qu'il fait", patch3:"Adresse mémoire", patch4:"Octets originaux (hex)", patch5:"Nouveaux octets (hex)", patch6:"Identifiant ECU",
+    patchApply:"Application:", patchApplyD:"Cocher ✓ les patches souhaités ← Cliquer Apply Selected Patches ← Fichier sauvegardé avec suffixe _patched",
+    tab06:"Onglet 06", obdTitle:"OBD / CAN",
+    obdSub:"Analyser les logs ELM327 et données CAN Bus avec décodage automatique",
+    obdSample:"Exemple de log OBD-II:", obdResult:"Résultats après analyse:", obdVal:"Valeur", obdUnit:"Unité",
+    tab07:"Onglet 07", popsTitle:"Pops & Bangs",
+    popsSub:"Ajouter des effets de crépitement d'échappement à trois niveaux d'intensité",
+    pop1T:"Doux", pop1D:"Léger crépitement au lever du pied. Sûr pour usage quotidien.",
+    pop2T:"Agressif", pop2D:"Fortes détonations à la décélération. Audible et adapté à la piste.",
+    pop3T:"Crépitement total", pop3D:"Effet maximum. Crépitement continu et bruyant. Pour piste uniquement.",
+    tab08:"Onglet 08", diffTitle:"Comparer BIN",
+    diffSub:"Comparer deux fichiers BIN et trouver toutes les différences",
+    diffResult:"Exemple de résultat de comparaison",
+    learnDiff:"Apprendre cette différence:", learnDiffD:"Après comparaison, cliquez ce bouton en spécifiant le type ECU et l'opération. La diff est sauvegardée pour génération automatique.",
+    tab09:"Onglet 09", hexTitle:"Vue Hex",
+    hexSub:"Parcourir le contenu du fichier BIN en hexadécimal avec représentation textuelle",
+    tab10:"Onglet 10", jobTitle:"Journal des travaux",
+    jobSub:"Enregistrez chaque travail de tune pour référence future et rapports clients",
+    jobCard1T:"Ajouter un enregistrement", jobCard1D:"Saisissez les données du véhicule : marque, modèle, année, VIN, type ECU, opérations effectuées.",
+    jobCard2T:"Rechercher & Exporter", jobCard2D:"Recherchez par n'importe quel mot. Couleurs : Vert = terminé | Orange = en cours | Rouge = annulé. Exportez en CSV.",
+    tab11:"Onglet 11", crmTitle:"Gestion clients (CRM)",
+    crmSub:"Base de données clients organisée avec recherche rapide",
+    crmTip:"Modification rapide:", crmTipD:"Cliquez sur une ligne ← Les données remplissent le formulaire ← Modifiez ← Cliquez Update Selected",
+    tab12:"Onglet 12 — Avancé", scriptsTitle:"Moteur de scripts",
+    scriptsSub:"Outil de tune le plus précis et sûr — recherche des patterns spécifiques et valide le contexte",
+    scriptAdv:"Ce qui distingue Script Engine:", scriptAdvD:"Au lieu d'écrire à une adresse fixe, il recherche un pattern d'octets puis valide les octets environnants avant la modification.",
+    scriptStructure:"Structure du fichier JSON de script",
+    tab13:"Onglet 13 — Nouveau v5", featTitle:"Détection des fonctionnalités",
+    featSub:"Vérification automatique de la présence DPF/EGR/SCR/IMMO/DTC/Boost",
+    fdpf:"Filtre à particules diesel", fegr:"Recirculation des gaz d'échappement", fscr:"AdBlue / DEF / Urée",
+    fimmo:"Système antidémarrage", fdtc:"Codes de défaut actifs", fboost:"Carte de pression turbo",
+    genScript:"Générer un script depuis les fonctionnalités:", genScriptD:"Après détection, cliquez pour générer automatiquement un script JSON pour les fonctionnalités détectées.",
+    tab14:"Onglet 14 — Nouveau v5", learnTitle:"Apprentissage des différences",
+    learnSub:"Chaque modification est sauvegardée automatiquement — le logiciel apprend et génère des scripts lui-même",
+    lCard1T:"Total des diffs", lCard1D:"Total des différences sauvegardées depuis toutes les opérations",
+    lCard2T:"Confirmées", lCard2D:"Diffs confirmées (vues une fois ou plus). Seules celles-ci sont utilisées",
+    lCard3T:"Scripts générés", lCard3D:"Nombre de scripts générés automatiquement depuis les diffs accumulées",
+    howLearn:"Comment fonctionne l'apprentissage automatique ?",
+    wf1T:"Appliquer une modification", wf1D:"DPF Delete, Stage Tune ou toute opération",
+    wf2T:"Sauvegarde automatique", wf2D:"Le logiciel enregistre la diff, le contexte et l'adresse",
+    wf3T:"Accumulation de données", wf3D:"Répéter la même opération augmente la confiance",
+    wf4T:"Générer un script", wf4D:"Cliquer Generate → Fichier JSON prêt à l'emploi",
+    tab15:"Onglet 15", hexConvTitle:"Conversion HEX",
+    hexConvSub:"Convertir des fichiers entre BIN et formats S-Record / Intel HEX",
+    hcConv:"Conversion", hcDesc:"Description", hcUse:"Usage",
+    hc1:"Fichier Motorola .srec", hc1u:"Compatibilité avec outils Motorola/Freescale",
+    hc2:"Fichier .hex", hc2u:"Programmation microcontrôleurs et Bootloader",
+    hc3:"Conversion inverse", hc3u:"Utiliser des fichiers srec en entrée",
+    hc4:"Conversion inverse", hc4u:"Convertir des fichiers hex pour le tune",
+    tagPractice:"Pratique", wfTitle:"Flux de travail recommandé",
+    wfSub:"Suivez ces étapes pour les meilleurs résultats",
+    beginner:"Pour les débutants", pro:"Pour les professionnels",
+    bStep1:"Ouvrir le programme ← Activer la licence", bStep2:"Glisser le fichier BIN",
+    bStep3:"Choisir Stage 1", bStep4:"Cliquer ▶ Analyze & Auto-Tune",
+    bStep5:"Examiner les résultats (Analyse)", bStep6:"Trouver le fichier dans output/",
+    pStep1:"Analyser le fichier original", pStep2:"Vérifier Feature Detection",
+    pStep3:"Aller au Script Engine", pStep4:"Sélectionner ou créer un script",
+    pStep5:"Utiliser Auto-Match & Run", pStep6:"Comparer le résultat dans BIN Diff",
+    pStep7:"Cliquer Learn This Diff",
+    importantRules:"Règles importantes avant toute modification",
+    backup:"Sauvegarde:", backupD:"Le logiciel sauvegarde automatiquement dans output/backups/ avant chaque modification.",
+    stage3warn:"Stage 3 nécessite des mises à niveau:", stage3warnD:"N'appliquez pas Stage 3 à un véhicule standard. Nécessite injecteurs, pompe carburant et intercooler améliorés.",
+    tagStructure:"Structure", foldersTitle:"Dossiers du programme",
+    foldersSub:"Tout ce que le programme sauvegarde et où le trouver",
+    fdb1:"← Base de données principale", fdb2:"← Données de licence activée",
+    fdb3:"← Base d'apprentissage", fdb4:"← Paramètres (thème, langue)",
+    fscripts:"← Dossier scripts JSON", fout1:"← Fichiers BIN modifiés",
+    fout2:"← Rapports HTML", fout3:"← Sauvegardes automatiques",
+    tagSupport:"Support", contactTitle:"Support technique",
+    contactSub:"Pour aide avec la licence ou toute question technique, contactez directement",
+    contactName:"Fares Mansour", contactRole:"Spécialiste en calibration ECU",
+    available:"Disponible 24h/24", whatsapp:"WhatsApp direct", copyNum:"Copier le numéro", callBtn:"Appeler",
+    phoneLabel:"Téléphone / WhatsApp",
+    contactTip:"Lors du contact, veuillez envoyer : ID de l'appareil (HWID) + type ECU + description du problème."
+  },
+  de: {
+    userGuide:"Benutzerhandbuch", navStart:"Erste Schritte", navOverview:"Übersicht",
+    navSplash:"Startbildschirm", navLicense:"Lizenz", navHeader:"Hauptleiste",
+    navPipeline:"Pipeline", navTabs:"Tabs", navAnalysis:"Analyse",
+    navFuel:"Kraftstoffkarten", navBoost:"Druckkarte", navTune:"DPF / EGR / Tune",
+    navPatch:"Patch-Manager", navOBD:"OBD / CAN", navPops:"Pops & Bangs",
+    navDiff:"BIN Vergleich", navHex:"Hex-Ansicht", navJob:"Auftragsprotokoll",
+    navCRM:"Kunden", navScripts:"Script-Engine", navFeatures:"Erkennung",
+    navLearn:"Diff-Lernen", navHexConv:"HEX Konvertierung", navOther:"Weitere",
+    navWorkflow:"Arbeitsablauf", navFolders:"Ordner", navContact:"Support",
+    heroGuide:"Vollständiges Benutzerhandbuch",
+    heroTitle1:"Alles was Sie brauchen", heroTitle2:"um ECUs zu tunen",
+    heroDesc:"Ein detaillierter, leicht verständlicher Leitfaden für alle Programmfunktionen, von der BIN-Dateianalyse bis zur automatischen Script-Generierung.",
+    statECU:"ECUs unterstützt", statStages:"Analysephasen", statTabs:"Spezialisierte Tabs", statSupport:"Technischer Support",
+    tagStart:"Erste Schritte", splashTitle:"Startbildschirm",
+    splashSub:"Erscheint automatisch beim Programmstart und zeigt Ladefortschritt",
+    splashCard1T:"Drehanimation", splashCard1D:"Drehendes ⚙-Symbol mit zwei Ringen — zeigt an, dass das Programm läuft und Komponenten initialisiert",
+    splashCard2T:"7-Phasen-Fortschrittsbalken", splashCard2D:"Füllt sich schrittweise über 7 Phasen: Datenbank → Bibliotheken → Feature-Detektor → Lern-Engine → Lizenz → Tune-Regeln → Bereit",
+    splashCard3T:"Pipeline-Boxen", splashCard3D:"7 Boxen leuchten nacheinander auf: SW ID ← Feature ← Pattern ← Context ← Rules ← Checksum ← Diff Learn",
+    splashCard4T:"Automatischer Übergang", splashCard4D:"Nach dem Laden blendet der Bildschirm weich aus und wechselt zur Lizenzaktivierung",
+    tagLicense:"Lizenz", licTitle:"Lizenzaktivierung",
+    licSub:"Erstes Fenster vor dem Programmzugang. Kein Internet erforderlich — lokal verifiziert",
+    licCard1T:"Geräte-ID (HWID)", licCard1D:"Verschlüsselter Code Ihres Geräts. Kopieren und an Ingenieur Fares senden.",
+    licCard2T:"Schlüssel einfügen", licCard2D:"Schlüssel ins Textfeld einfügen oder Paste from Clipboard klicken.",
+    licCard3T:"Sofortaktivierung", licCard3D:"Nach Aktivierung wird die Lizenz lokal gespeichert. Nur mit Ihrem Gerät verknüpft.",
+    licSteps:"Schritte zur Lizenzaktivierung:", licStepsDesc:"HWID kopieren ← Per WhatsApp senden +970595438486 ← Schlüssel erhalten ← Einfügen und Activate klicken",
+    tagUI:"Interface", headerTitle:"Hauptleiste",
+    headerSub:"Immer oben im Fenster sichtbar",
+    hCard1T:"Theme umschalten", hCard1D:"Dark ⇄ Light — ändert sich sofort",
+    hCard2T:"Sprache", hCard2D:"EN / AR / FR / DE / TR — sofortige Umschaltung",
+    hCard3T:"Lizenzstatus", hCard3D:"● Grün = Lizenziert | ● Rot = Keine Lizenz",
+    hCard4T:"Schlüssel ändern", hCard4D:"Lizenzschlüssel bei Erneuerung ändern",
+    tagProcess:"Verarbeitung", pipeTitle:"7-Phasen-Pipeline",
+    pipeSub:"Jede Analyse durchläuft diese Phasen nacheinander",
+    tNum:"Nr.", tName:"Phasenname", tDesc:"Was sie tut", tColor:"Farbindikator",
+    p1d:"Software-ID aus BIN-Datei extrahieren", p1c:"Orange",
+    p2d:"DPF / EGR / SCR / IMMO / DTC erkennen", p2c:"Blau",
+    p3d:"Bekannte Muster im Speicher suchen", p3c:"Blau",
+    p4d:"Kontext um jedes Muster validieren", p4c:"Violett",
+    p5d:"Tune-Regeln anwenden und Änderungen ausführen", p5c:"Violett",
+    p6d:"Prüfsumme der geänderten Datei berechnen", p6c:"Gelb",
+    p7d:"Änderungen in Lerndatenbank speichern", p7c:"Grün",
+    pOrange:"Animiertes Orange", pOrangeD:"Phase läuft gerade",
+    pGreen:"✔ Grün", pGreenD:"Phase erfolgreich abgeschlossen",
+    pRed:"✘ Rot", pRedD:"Fehler in dieser Phase aufgetreten",
+    tab01:"Tab 01", analysisTitle:"Analyse-Tab",
+    analysisSub:"Erster und wichtigster Tab. Führt vollständige 7-Phasen-Analyse durch",
+    analysisOrder:"Arbeitsreihenfolge:", analysisOrderD:"Datei wählen ← Stage wählen ← ▶ Analyze klicken ← Ergebnisse prüfen",
+    aCard1T:"Datei auswählen", aCard1D:"Browse-Schaltfläche oder BIN-Datei direkt hineinziehen. Nur .bin-Dateien.",
+    aCard2T:"Stage wählen", aCard2D:"Aus Stage-Dropdown Tune-Level (1/2/3) vor Analyze wählen.",
+    aCodeTitle:"Analysebeispiel",
+    tab02:"Tab 02", fuelTitle:"Kraftstoffkarten",
+    fuelSub:"Kraftstofftabelle extrahieren, anzeigen und exportieren mit farbiger Visualisierung",
+    fCard1T:"Offset-Feld", fCard1D:"Speicheradresse der Kraftstoffkarte. Beispiel: 0x8000",
+    fCard2T:"Zeilen × Spalten", fCard2D:"Tabellengröße. Häufig 16×16. Änderbar von 4 bis 32.",
+    fCard3T:"Datentypen", fCard3D:"uint16_le am häufigsten — 16-Bit Little-Endian Integer.",
+    fTip:"Vorher/Nachher:", fTipD:"Nach Stage Tune klicken, um Tabelle vorher/nachher zu vergleichen",
+    tab03:"Tab 03", boostTitle:"Druckkarte",
+    boostSub:"Turbo-Ladedruck direkt anzeigen und bearbeiten — mit Sicherheitsschutz",
+    bCard1T:"Live-Warnungen", bCard1D:"Wenn eine Zelle 2,8 bar überschreitet, erscheint eine sofortige Warnung.",
+    bCard2T:"Auf BIN anwenden", bCard2D:"Wendet Änderungen direkt auf BIN an und speichert im output-Ordner.",
+    bWarn:"Wichtige Warnung:", bWarnD:"Druckkarten-Änderungen ohne Hardware-Upgrades können schwere Schäden verursachen. Sicheres Maximum: 2,8 bar.",
+    tab04:"Tab 04", tuneTitle:"DPF / EGR / IMMO / Tune",
+    tuneSub:"Meistgenutzter Tab — kombiniert Filterentfernung, Wegfahrsperrendeaktivierung und Auto-Tune",
+    tCard1T:"DPF Delete", tCard1D:"Entfernt das Dieselpartikelfilter-System. Deaktiviert Regenerationszyklen.",
+    tCard2T:"EGR Delete", tCard2D:"Deaktiviert das Abgasrückführungssystem.",
+    tCard3T:"IMMO Off", tCard3D:"Deaktiviert elektronische Wegfahrsperre. Erforderlich beim ECU-Tausch.",
+    stageLevels:"Auto-Tune-Stufen",
+    s1T:"Leichtes Tune", s1f1:"Kraftstoffkarte +10%", s1f2:"EGR auf 20% reduziert", s1f3:"Ladedruck +5%", s1f4:"Sicher für den Alltag", s1f5:"Keine Hardware-Upgrades nötig", s1w:"✔ Geeignet für Straßenfahrzeuge",
+    s2T:"Mittleres Tune", s2f1:"Kraftstoffkarte +20%", s2f2:"Raildruck +15%", s2f3:"Ladedruck +12%", s2f4:"Drehmomentsgrenze +10%", s2f5:"EGR vollständig deaktiviert", s2w:"⚠ Dyno-Überprüfung erforderlich",
+    s3T:"Maximale Leistung", s3f1:"Kraftstoffkarte +30%", s3f2:"Drehmomentgrenze entfernt", s3f3:"Ladedruck +20%", s3f4:"Raildruck +25%", s3f5:"DPF + EGR deaktiviert", s3w:"🔴 Vollständige Hardware-Upgrades erforderlich",
+    preCheck:"Vorprüfung:", preCheckD:"Vor jeder Änderung prüft die Software automatisch auf DPF/EGR/IMMO.",
+    tab05:"Tab 05", patchTitle:"Patch-Manager",
+    patchSub:"Benutzerdefinierte Patches zu BIN-Dateien hinzufügen, verwalten und anwenden",
+    pField:"Feld", pDesc:"Beschreibung", pEx:"Beispiel",
+    patch1:"Eindeutige Patch-ID", patch2:"Beschreibung", patch3:"Speicheradresse", patch4:"Original-Bytes (hex)", patch5:"Neue Bytes (hex)", patch6:"ECU-Kennung",
+    patchApply:"Anwenden:", patchApplyD:"Patches auswählen ✓ ← Apply Selected Patches klicken ← Datei mit Suffix _patched gespeichert",
+    tab06:"Tab 06", obdTitle:"OBD / CAN",
+    obdSub:"ELM327-Protokolle und CAN-Bus-Daten analysieren mit automatischer Dekodierung",
+    obdSample:"OBD-II-Protokoll-Beispiel:", obdResult:"Analysierte Ergebnisse:", obdVal:"Wert", obdUnit:"Einheit",
+    tab07:"Tab 07", popsTitle:"Pops & Bangs",
+    popsSub:"Auspuff-Knaller und Prasseln in drei Intensitätsstufen hinzufügen",
+    pop1T:"Mild", pop1D:"Leichtes Prasseln beim Gaswegnehmen. Für den Alltag geeignet.",
+    pop2T:"Aggressiv", pop2D:"Starke Knaller beim Verzögern. Deutlich hörbar, für die Rennstrecke.",
+    pop3T:"Volles Prasseln", pop3D:"Maximaler Effekt. Kontinuierliches lautes Prasseln. Nur für Rennstrecke.",
+    tab08:"Tab 08", diffTitle:"BIN Vergleich",
+    diffSub:"Zwei BIN-Dateien vergleichen und alle Unterschiede finden",
+    diffResult:"Vergleichsergebnis-Beispiel",
+    learnDiff:"Differenz lernen:", learnDiffD:"Nach dem Vergleich klicken und ECU-Typ und Vorgang angeben. Die Diff wird für zukünftige Script-Generierung gespeichert.",
+    tab09:"Tab 09", hexTitle:"Hex-Ansicht",
+    hexSub:"BIN-Dateiinhalt in Hexadezimalformat mit Textdarstellung durchsuchen",
+    tab10:"Tab 10", jobTitle:"Auftragsprotokoll",
+    jobSub:"Jeden Tune-Auftrag für zukünftige Referenz und Kundenberichte aufzeichnen",
+    jobCard1T:"Neuen Eintrag hinzufügen", jobCard1D:"Fahrzeugdaten eingeben: Marke, Modell, Jahr, VIN, ECU-Typ, Vorgänge.",
+    jobCard2T:"Suchen & Exportieren", jobCard2D:"Nach beliebigem Wort suchen. Farben: Grün = abgeschlossen | Orange = laufend | Rot = abgebrochen. Als CSV exportieren.",
+    tab11:"Tab 11", crmTitle:"Kundenverwaltung (CRM)",
+    crmSub:"Organisierte Kundendatenbank mit Schnellsuche",
+    crmTip:"Schnelle Bearbeitung:", crmTipD:"Zeile klicken ← Daten füllen Formular ← Bearbeiten ← Update Selected klicken",
+    tab12:"Tab 12 — Fortgeschritten", scriptsTitle:"Script-Engine",
+    scriptsSub:"Präzisestes und sicherstes Tune-Tool — sucht spezifische Muster und validiert Kontext",
+    scriptAdv:"Was Script Engine auszeichnet:", scriptAdvD:"Anstatt an feste Adressen zu schreiben, sucht es nach Byte-Mustern und validiert den Kontext vor Änderungen.",
+    scriptStructure:"JSON-Script-Dateistruktur",
+    tab13:"Tab 13 — Neu v5", featTitle:"Feature-Erkennung",
+    featSub:"Automatische Prüfung auf DPF/EGR/SCR/IMMO/DTC/Boost",
+    fdpf:"Diesel-Partikelfilter", fegr:"Abgasrückführung", fscr:"AdBlue / DEF / Harnstoff",
+    fimmo:"Wegfahrsperren-System", fdtc:"Aktive Fehlercodes", fboost:"Turbo-Druckkarte",
+    genScript:"Script aus Features generieren:", genScriptD:"Nach Erkennung klicken, um automatisch ein JSON-Script für erkannte Features zu generieren.",
+    tab14:"Tab 14 — Neu v5", learnTitle:"Differenz-Lernen",
+    learnSub:"Jede Änderung wird automatisch gespeichert — die Software lernt und generiert Scripts selbst",
+    lCard1T:"Gesamt-Diffs", lCard1D:"Gesamte gespeicherte Unterschiede aus allen Vorgängen",
+    lCard2T:"Bestätigt", lCard2D:"Bestätigte Diffs (einmal oder öfter gesehen). Nur diese werden verwendet",
+    lCard3T:"Scripts generiert", lCard3D:"Anzahl automatisch generierter Scripts aus angesammelten Diffs",
+    howLearn:"Wie funktioniert automatisches Lernen?",
+    wf1T:"Änderung anwenden", wf1D:"DPF Delete, Stage Tune oder beliebiger Vorgang",
+    wf2T:"Automatisch speichern", wf2D:"Software zeichnet Diff, Kontext und Adresse auf",
+    wf3T:"Datenakkumulation", wf3D:"Wiederholung erhöht das Vertrauen",
+    wf4T:"Script generieren", wf4D:"Generate klicken → Fertiges JSON-File",
+    tab15:"Tab 15", hexConvTitle:"HEX Konvertierung",
+    hexConvSub:"Dateien zwischen BIN und S-Record / Intel HEX konvertieren",
+    hcConv:"Konvertierung", hcDesc:"Beschreibung", hcUse:"Verwendung",
+    hc1:"Motorola .srec Datei", hc1u:"Kompatibilität mit Motorola/Freescale-Tools",
+    hc2:".hex Datei", hc2u:"Mikrokontroller und Bootloader programmieren",
+    hc3:"Umgekehrte Konvertierung", hc3u:"srec-Dateien als Eingabe verwenden",
+    hc4:"Umgekehrte Konvertierung", hc4u:"hex-Dateien für Tuning konvertieren",
+    tagPractice:"Praxis", wfTitle:"Empfohlener Arbeitsablauf",
+    wfSub:"Folgen Sie diesen Schritten für beste Ergebnisse",
+    beginner:"Für Anfänger", pro:"Für Profis",
+    bStep1:"Programm öffnen ← Lizenz aktivieren", bStep2:"BIN-Datei in Bereich ziehen",
+    bStep3:"Stage 1 wählen", bStep4:"▶ Analyze & Auto-Tune klicken",
+    bStep5:"Ergebnisse im Analyse-Tab prüfen", bStep6:"Datei im output/-Ordner finden",
+    pStep1:"Originaldatei analysieren", pStep2:"Feature Detection prüfen",
+    pStep3:"Zur Script Engine gehen", pStep4:"Script auswählen oder erstellen",
+    pStep5:"Auto-Match & Run verwenden", pStep6:"Ergebnis in BIN Diff vergleichen",
+    pStep7:"Learn This Diff klicken",
+    importantRules:"Wichtige Regeln vor jeder Änderung",
+    backup:"Backup:", backupD:"Software speichert automatisch Backup in output/backups/ vor jeder Änderung.",
+    stage3warn:"Stage 3 nur mit Upgrades:", stage3warnD:"Stage 3 nicht auf Standardfahrzeuge anwenden. Erfordert verbesserte Einspritzdüsen, Kraftstoffpumpe und größeren Ladeluftkühler.",
+    tagStructure:"Struktur", foldersTitle:"Programmordner",
+    foldersSub:"Alles was das Programm speichert und wo",
+    fdb1:"← Hauptdatenbank", fdb2:"← Aktivierte Lizenzdaten",
+    fdb3:"← Lern-Datenbank", fdb4:"← Einstellungen (Theme, Sprache)",
+    fscripts:"← JSON-Scripts-Ordner", fout1:"← Geänderte BIN-Dateien",
+    fout2:"← HTML-Berichte", fout3:"← Automatische Backups",
+    tagSupport:"Support", contactTitle:"Technischer Support",
+    contactSub:"Für Hilfe mit Lizenz oder technischen Fragen, direkt kontaktieren",
+    contactName:"Fares Mansour", contactRole:"ECU-Kalibrierungsspezialist",
+    available:"Verfügbar 24/7", whatsapp:"WhatsApp", copyNum:"Nummer kopieren", callBtn:"Anrufen",
+    phoneLabel:"Telefon / WhatsApp",
+    contactTip:"Beim Kontakt bitte senden: Geräte-ID (HWID) + ECU-Typ + Problembeschreibung."
+  },
+  tr: {
+    userGuide:"Kullanıcı Kılavuzu", navStart:"Başlangıç", navOverview:"Genel Bakış",
+    navSplash:"Başlangıç Ekranı", navLicense:"Lisans", navHeader:"Ana Araç Çubuğu",
+    navPipeline:"Pipeline", navTabs:"Sekmeler", navAnalysis:"Analiz",
+    navFuel:"Yakıt Haritaları", navBoost:"Basınç Haritası", navTune:"DPF / EGR / Tune",
+    navPatch:"Yama Yöneticisi", navOBD:"OBD / CAN", navPops:"Pops & Bangs",
+    navDiff:"BIN Karşılaştır", navHex:"Hex Görünümü", navJob:"İş Günlüğü",
+    navCRM:"Müşteriler", navScripts:"Script Motoru", navFeatures:"Özellik Tespiti",
+    navLearn:"Diff Öğrenme", navHexConv:"HEX Dönüştürme", navOther:"Diğer",
+    navWorkflow:"İş Akışı", navFolders:"Klasörler", navContact:"Destek",
+    heroGuide:"Kapsamlı Kullanıcı Kılavuzu",
+    heroTitle1:"İhtiyacınız olan her şey", heroTitle2:"ECU ayarı için",
+    heroDesc:"BIN dosya analizinden otomatik script oluşturmaya kadar tüm program özellikleri için ayrıntılı ve kolay anlaşılır bir kılavuz.",
+    statECU:"Desteklenen ECU", statStages:"Analiz aşamaları", statTabs:"Özel sekmeler", statSupport:"Teknik destek",
+    tagStart:"Başlangıç", splashTitle:"Başlangıç Ekranı",
+    splashSub:"Program başlatıldığında otomatik görünür ve yükleme aşamalarını gösterir",
+    splashCard1T:"Dönen Animasyon", splashCard1D:"İki halkalı dönen ⚙ simgesi — programın çalıştığını ve bileşenleri başlattığını gösterir",
+    splashCard2T:"7 Aşamalı İlerleme Çubuğu", splashCard2D:"7 aşamada yükleme ilerlemesini gösterir: Veritabanı → Kütüphaneler → Özellik Dedektörü → Öğrenme Motoru → Lisans → Tune Kuralları → Hazır",
+    splashCard3T:"Pipeline Kutuları", splashCard3D:"7 kutu sırayla yanar: SW ID ← Feature ← Pattern ← Context ← Rules ← Checksum ← Diff Learn",
+    splashCard4T:"Otomatik Geçiş", splashCard4D:"Yükleme tamamlandıktan sonra ekran yumuşakça kaybolur ve lisans aktivasyon penceresine geçer",
+    tagLicense:"Lisans", licTitle:"Lisans Aktivasyonu",
+    licSub:"Programa girmeden önce görünen ilk pencere. İnternet gerektirmez — lisans yerel olarak doğrulanır",
+    licCard1T:"Cihaz Kimliği (HWID)", licCard1D:"Cihazınıza özgü şifreli kod. Kopyalayın ve Mühendis Fares'e gönderin.",
+    licCard2T:"Anahtar Yapıştır", licCard2D:"Anahtarı metin alanına yapıştırın veya Paste from Clipboard'ı tıklayın.",
+    licCard3T:"Anında Aktivasyon", licCard3D:"Başarılı aktivasyondan sonra lisans yerel olarak kaydedilir. Yalnızca cihazınıza bağlıdır.",
+    licSteps:"Lisans alma adımları:", licStepsDesc:"HWID'yi kopyala ← WhatsApp +970595438486'ya gönder ← Anahtarı al ← Yapıştır ve Activate'e tıkla",
+    tagUI:"Arayüz", headerTitle:"Ana Araç Çubuğu",
+    headerSub:"Her zaman pencerenin üstünde görünür",
+    hCard1T:"Tema Değiştir", hCard1D:"Dark ⇄ Light — anında değişir",
+    hCard2T:"Dil", hCard2D:"EN / AR / FR / DE / TR — anında geçiş",
+    hCard3T:"Lisans Durumu", hCard3D:"● Yeşil = Lisanslı | ● Kırmızı = Lisanssız",
+    hCard4T:"Anahtar Değiştir", hCard4D:"Yenileme sırasında lisans anahtarını değiştir",
+    tagProcess:"İşleme", pipeTitle:"7 Aşamalı Pipeline",
+    pipeSub:"Her analiz bu aşamalardan sırayla geçer",
+    tNum:"No.", tName:"Aşama Adı", tDesc:"Ne yapar", tColor:"Renk göstergesi",
+    p1d:"BIN dosyasından yazılım kimliği çıkar", p1c:"Turuncu",
+    p2d:"DPF / EGR / SCR / IMMO / DTC varlığını tespit et", p2c:"Mavi",
+    p3d:"Bellekte bilinen desenleri ara", p3c:"Mavi",
+    p4d:"Doğruluk için her desen etrafındaki bağlamı doğrula", p4c:"Mor",
+    p5d:"Tune kurallarını uygula ve değişiklikleri gerçekleştir", p5c:"Mor",
+    p6d:"Değiştirilen dosyanın sağlama toplamını hesapla", p6c:"Sarı",
+    p7d:"Değişiklikleri gelecekteki script oluşturma için kaydet", p7c:"Yeşil",
+    pOrange:"Animasyonlu turuncu", pOrangeD:"Aşama şu anda çalışıyor",
+    pGreen:"✔ Yeşil", pGreenD:"Aşama başarıyla tamamlandı",
+    pRed:"✘ Kırmızı", pRedD:"Bu aşamada hata oluştu",
+    tab01:"Sekme 01", analysisTitle:"Analiz Sekmesi",
+    analysisSub:"İlk ve en önemli sekme. 7 aşamada tam analiz yapar",
+    analysisOrder:"İş sırası:", analysisOrderD:"Dosyayı seç ← Stage seç ← ▶ Analyze tıkla ← Sonuçları incele",
+    aCard1T:"Dosya Seç", aCard1D:"Browse düğmesini kullanın veya BIN dosyasını doğrudan sürükleyin. Yalnızca .bin dosyaları kabul eder.",
+    aCard2T:"Aşama Seç", aCard2D:"Stage açılır menüsünden Analyze'dan önce tune seviyesini (1/2/3) seçin.",
+    aCodeTitle:"Analiz sonuçları örneği",
+    tab02:"Sekme 02", fuelTitle:"Yakıt Haritaları",
+    fuelSub:"Renkli görselleştirme ile yakıt tablosunu çıkar, görüntüle ve dışa aktar",
+    fCard1T:"Offset Alanı", fCard1D:"Yakıt haritasının başladığı bellek adresi. Örnek: 0x8000",
+    fCard2T:"Satır × Sütun", fCard2D:"Tablo boyutları. Yaygın değer 16×16. 4'ten 32'ye değiştirilebilir.",
+    fCard3T:"Veri Türleri", fCard3D:"uint16_le en yaygın — 16-bit Little-Endian tam sayı.",
+    fTip:"Önce/Sonra:", fTipD:"Stage Tune uygulandıktan sonra tabloyu karşılaştırmak için tıklayın",
+    tab03:"Sekme 03", boostTitle:"Basınç Haritası",
+    boostSub:"Turbo boost basıncını doğrudan görüntüle ve düzenle — güvenlik korumasıyla",
+    bCard1T:"Anlık Uyarılar", bCard1D:"Herhangi bir hücre 2.8 bar'ı aşarsa anında uyarı görünür.",
+    bCard2T:"BIN'e Uygula", bCard2D:"Değişiklikleri doğrudan BIN'e uygular ve tarih damgalı output klasörüne kaydeder.",
+    bWarn:"Önemli Uyarı:", bWarnD:"Uygun donanım yükseltmesi olmadan basınç haritasını değiştirmek ciddi hasara yol açabilir. Güvenli maksimum: 2.8 bar.",
+    tab04:"Sekme 04", tuneTitle:"DPF / EGR / IMMO / Tune",
+    tuneSub:"En çok kullanılan sekme — filtre silme, immobilizer devre dışı bırakma ve otomatik tune",
+    tCard1T:"DPF Delete", tCard1D:"Dizel partikül filtre sistemini kaldırır. Yenileme döngülerini devre dışı bırakır. Yalnızca yarış araçları için.",
+    tCard2T:"EGR Delete", tCard2D:"Egzoz gazı geri dönüşüm sistemini devre dışı bırakır. Motor verimliliğini artırır.",
+    tCard3T:"IMMO Off", tCard3D:"Elektronik immobilizer'ı devre dışı bırakır. ECU değişiminde gereklidir.",
+    stageLevels:"Otomatik Tune Seviyeleri",
+    s1T:"Hafif Tune", s1f1:"Yakıt haritası +10%", s1f2:"EGR %20'ye düşürüldü", s1f3:"Turbo basıncı +5%", s1f4:"Günlük kullanım için güvenli", s1f5:"Donanım yükseltmesi gerekmez", s1w:"✔ Sokak araçları için uygun",
+    s2T:"Orta Tune", s2f1:"Yakıt haritası +20%", s2f2:"Ray basıncı +15%", s2f3:"Turbo basıncı +12%", s2f4:"Tork limiti +10%", s2f5:"EGR tamamen devre dışı", s2w:"⚠ Dino doğrulaması gerektirir",
+    s3T:"Maksimum Güç", s3f1:"Yakıt haritası +30%", s3f2:"Tork limiti kaldırıldı", s3f3:"Turbo basıncı +20%", s3f4:"Ray basıncı +25%", s3f5:"DPF + EGR devre dışı", s3w:"🔴 Tam donanım yükseltmesi gerektirir",
+    preCheck:"Ön özellik kontrolü:", preCheckD:"Herhangi bir değişiklik uygulamadan önce yazılım otomatik olarak DPF/EGR/IMMO varlığını kontrol eder.",
+    tab05:"Sekme 05", patchTitle:"Yama Yöneticisi",
+    patchSub:"BIN dosyalarına özel yamalar ekle, yönet ve uygula",
+    pField:"Alan", pDesc:"Açıklama", pEx:"Örnek",
+    patch1:"Benzersiz yama tanımlayıcısı", patch2:"Ne yaptığının açıklaması", patch3:"Bellek adresi", patch4:"Orijinal baytlar (hex)", patch5:"Yeni baytlar (hex)", patch6:"ECU tanımlayıcısı",
+    patchApply:"Uygulama:", patchApplyD:"İstenen yamaları ✓ işaretle ← Apply Selected Patches tıkla ← Dosya _patched ekiyle kaydedilir",
+    tab06:"Sekme 06", obdTitle:"OBD / CAN",
+    obdSub:"ELM327 günlüklerini ve CAN Bus verilerini otomatik PID ve DTC kod çözme ile analiz et",
+    obdSample:"OBD-II günlük örneği:", obdResult:"Parse sonuçları:", obdVal:"Değer", obdUnit:"Birim",
+    tab07:"Sekme 07", popsTitle:"Pops & Bangs",
+    popsSub:"Üç yoğunluk seviyesinde egzoz patlaması ve çıtırtı efekti ekle",
+    pop1T:"Hafif", pop1D:"Gaz bırakırken hafif çıtırtı. Günlük kullanım için güvenli.",
+    pop2T:"Agresif", pop2D:"Yavaşlarken güçlü patlamalar. Açıkça duyulur, pist için uygun.",
+    pop3T:"Tam Çıtırtı", pop3D:"Maksimum efekt. Sürekli yüksek sesli çıtırtı. Yalnızca pist araçları için.",
+    tab08:"Sekme 08", diffTitle:"BIN Karşılaştır",
+    diffSub:"İki BIN dosyasını karşılaştır ve tüm farklılıkları bul",
+    diffResult:"Karşılaştırma sonucu örneği",
+    learnDiff:"Bu Farkı Öğren:", learnDiffD:"Karşılaştırmadan sonra ECU tipini ve işlemi belirterek bu düğmeye tıklayın. Fark gelecekteki otomatik script oluşturma için kaydedilir.",
+    tab09:"Sekme 09", hexTitle:"Hex Görünümü",
+    hexSub:"BIN dosya içeriğini metin temsiliyle hexadecimal formatında görüntüle",
+    tab10:"Sekme 10", jobTitle:"İş Günlüğü",
+    jobSub:"Yaptığınız her tune işini gelecekte başvurmak ve müşteri raporları için kaydet",
+    jobCard1T:"Yeni Kayıt Ekle", jobCard1D:"Araç verilerini girin: marka, model, yıl, VIN, ECU tipi, yapılan işlemler. Add Job'a tıklayın.",
+    jobCard2T:"Ara & Dışa Aktar", jobCard2D:"Kayıtlarınızda herhangi bir kelimeyle arayın. Renkler: Yeşil = tamamlandı | Turuncu = devam ediyor | Kırmızı = iptal. CSV olarak dışa aktarın.",
+    tab11:"Sekme 11", crmTitle:"Müşteri Yönetimi (CRM)",
+    crmSub:"Hızlı arama özelliğiyle düzenli müşteri veritabanı",
+    crmTip:"Hızlı Düzenleme:", crmTipD:"Herhangi bir satıra tıkla ← Veriler forma otomatik dolar ← İstediğini düzenle ← Update Selected tıkla",
+    tab12:"Sekme 12 — Gelişmiş", scriptsTitle:"Script Motoru",
+    scriptsSub:"En hassas ve güvenli tune aracı — belirli desenleri arar ve değişiklikten önce bağlamı doğrular",
+    scriptAdv:"Script Engine'i öne çıkaran:", scriptAdvD:"Sabit bir adrese yazmak yerine, değişiklikten önce bir bayt deseni arar ve çevreleyen baytları (bağlam) doğrular.",
+    scriptStructure:"Script JSON Dosya Yapısı",
+    tab13:"Sekme 13 — Yeni v5", featTitle:"Özellik Tespiti",
+    featSub:"Herhangi bir değişiklikten önce DPF/EGR/SCR/IMMO/DTC/Boost varlığının otomatik kontrolü",
+    fdpf:"Dizel Partikül Filtresi", fegr:"Egzoz Gazı Geri Dönüşümü", fscr:"AdBlue / DEF / Üre",
+    fimmo:"İmmobilizer Sistemi", fdtc:"Aktif Hata Kodları", fboost:"Turbo Basınç Haritası",
+    genScript:"Özelliklerden Script Oluştur:", genScriptD:"Tespiten sonra, tespit edilen özellikler için otomatik JSON script oluşturmak için bu düğmeye tıklayın.",
+    tab14:"Sekme 14 — Yeni v5", learnTitle:"Diff Öğrenme",
+    learnSub:"Yaptığınız her değişiklik otomatik kaydedilir — zamanla yazılım kendi başına script oluşturur",
+    lCard1T:"Toplam Diff", lCard1D:"Tüm işlemlerden veritabanına kaydedilen toplam farklılıklar",
+    lCard2T:"Onaylanan", lCard2D:"Onaylanan difler (bir veya daha fazla görülen). Yalnızca bunlar script oluşturmak için kullanılır",
+    lCard3T:"Oluşturulan Scriptler", lCard3D:"Birikmiş difflerden otomatik oluşturulan script sayısı",
+    howLearn:"Otomatik öğrenme nasıl çalışır?",
+    wf1T:"Değişiklik Uygula", wf1D:"DPF Delete, Stage Tune veya herhangi bir işlem",
+    wf2T:"Otomatik Kaydet", wf2D:"Yazılım diff, bağlam ve adresi kaydeder",
+    wf3T:"Veri Birikimi", wf3D:"Aynı işlemi tekrarlamak güveni artırır",
+    wf4T:"Script Oluştur", wf4D:"Generate tıkla → Kullanıma hazır JSON dosyası",
+    tab15:"Sekme 15", hexConvTitle:"HEX Dönüştürme",
+    hexConvSub:"Dosyaları BIN ve S-Record / Intel HEX formatları arasında dönüştür",
+    hcConv:"Dönüştürme", hcDesc:"Açıklama", hcUse:"Kullanım",
+    hc1:"Motorola .srec dosyası", hc1u:"Motorola/Freescale araçlarıyla uyumluluk",
+    hc2:".hex dosyası", hc2u:"Mikrodenetleyici ve Bootloader programlama",
+    hc3:"Ters dönüştürme", hc3u:"srec dosyalarını girdi olarak kullan",
+    hc4:"Ters dönüştürme", hc4u:"hex dosyalarını tune için dönüştür",
+    tagPractice:"Uygulama", wfTitle:"Önerilen İş Akışı",
+    wfSub:"En iyi sonuçlar için bu adımları izleyin",
+    beginner:"Yeni Başlayanlar İçin", pro:"Profesyoneller İçin",
+    bStep1:"Programı aç ← Lisansı etkinleştir", bStep2:"BIN dosyasını alana sürükle",
+    bStep3:"Stage 1 seç", bStep4:"▶ Analyze & Auto-Tune tıkla",
+    bStep5:"Analiz sekmesinde sonuçları incele", bStep6:"Dosyayı output/ klasöründe bul",
+    pStep1:"Orijinal dosyayı analiz et", pStep2:"Feature Detection'ı kontrol et",
+    pStep3:"Script Engine'e git", pStep4:"Script seç veya oluştur",
+    pStep5:"Auto-Match & Run kullan", pStep6:"BIN Diff'te sonucu karşılaştır",
+    pStep7:"Learn This Diff tıkla",
+    importantRules:"Herhangi Bir Değişiklikten Önce Önemli Kurallar",
+    backup:"Yedek:", backupD:"Yazılım her değişiklikten önce output/backups/ klasörüne otomatik yedek kaydeder.",
+    stage3warn:"Stage 3 yalnızca yükseltmelerle:", stage3warnD:"Stage 3'ü standart bir araca uygulamayın. Geliştirilmiş enjektörler, yakıt pompası ve daha büyük intercooler gerektirir.",
+    tagStructure:"Yapı", foldersTitle:"Program Klasörleri",
+    foldersSub:"Programın kaydettiği her şey ve nerede bulunacağı",
+    fdb1:"← Ana veritabanı", fdb2:"← Etkinleştirilmiş lisans verileri",
+    fdb3:"← Öğrenme veritabanı", fdb4:"← Ayarlar (tema, dil)",
+    fscripts:"← JSON script klasörü", fout1:"← Değiştirilmiş BIN dosyaları",
+    fout2:"← HTML raporları", fout3:"← Otomatik yedekler",
+    tagSupport:"Destek", contactTitle:"Teknik Destek",
+    contactSub:"Lisans veya teknik sorular için doğrudan iletişime geçin",
+    contactName:"Fares Mansour", contactRole:"ECU Kalibrasyon Uzmanı",
+    available:"7/24 Müsait", whatsapp:"WhatsApp", copyNum:"Numarayı Kopyala", callBtn:"Ara",
+    phoneLabel:"Telefon / WhatsApp",
+    contactTip:"İletişimde lütfen şunları gönderin: Cihaz Kimliği (HWID) + ECU tipi + sorun açıklaması."
+  }
+};
+
+// ─── APPLY LANGUAGE ──────────────────────────────────────────────────────────
+function setLang(lang) {
+  const t = T[lang] || T['ar'];
+  const isRTL = (lang === 'ar');
+
+  // Direction
+  document.documentElement.setAttribute('dir', isRTL ? 'rtl' : 'ltr');
+  document.documentElement.setAttribute('lang', lang);
+
+  // Update all [data-k] elements
+  document.querySelectorAll('[data-k]').forEach(el => {
+    const key = el.getAttribute('data-k');
+    if (t[key] !== undefined) el.textContent = t[key];
+  });
+
+  // Update active lang button
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.trim().toLowerCase().startsWith(lang) ||
+      (lang === 'ar' && btn.textContent.includes('العربية')) ||
+      (lang === 'en' && btn.textContent.includes('English')) ||
+      (lang === 'fr' && btn.textContent.includes('Français')) ||
+      (lang === 'de' && btn.textContent.includes('Deutsch')) ||
+      (lang === 'tr' && btn.textContent.includes('Türkçe'))
+    );
+  });
+
+  // Persist
+  try { localStorage.setItem('ecu_lang', lang); } catch(e) {}
+}
+
+// ─── NAV SCROLL SPY ──────────────────────────────────────────────────────────
+const sections = document.querySelectorAll('section[id], div[id]');
+const navItems = document.querySelectorAll('.nav-item');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navItems.forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('href') === '#' + entry.target.id) {
+          item.classList.add('active');
+        }
+      });
+    }
+  });
+}, { threshold: 0.3 });
+
+sections.forEach(s => observer.observe(s));
+
+navItems.forEach(item => {
+  item.addEventListener('click', (e) => {
+    e.preventDefault();
+    const target = document.querySelector(item.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth' });
+  });
+});
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+(function init() {
+  let saved = 'ar';
+  try { saved = localStorage.getItem('ecu_lang') || 'ar'; } catch(e) {}
+  setLang(saved);
+})();
+</script>
+</body>
+</html>
